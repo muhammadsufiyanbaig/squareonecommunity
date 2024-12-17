@@ -9,6 +9,26 @@ import { Eye, EyeOff } from "lucide-react";
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const [email, setEmail] = useState("");
+  const [emailValid, setEmailValid] = useState(true);
+
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setEmail(e.target.value);
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!isValidEmail(email)) {
+      setEmailValid(false);
+      return;
+    }
+    setEmailValid(true);
+  };
 
   return (
     <div className=" bg-gray-100 py-5 min-h-screen flex items-center">
@@ -27,7 +47,7 @@ export default function LoginForm() {
         </div>
 
         {/* Login Form */}
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmit}>
           <h1 className="text-center text-red-600 text-3xl font-semibold">
             Login
           </h1>
@@ -40,7 +60,14 @@ export default function LoginForm() {
               type="text"
               placeholder="Email"
               className="w-full border-b border-t-0 border-x-0 rounded-none focus-visible:ring-0 px-0"
+              value={email}
+              onChange={handleEmailChange}
             />
+            {!emailValid && (
+              <p className="text-red-600 text-xs mt-2" id="email-error">
+                Please include a valid email address
+              </p>
+            )}
           </div>
 
           <div className="space-y-2">

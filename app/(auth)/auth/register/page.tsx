@@ -10,6 +10,42 @@ import { Eye, EyeOff } from "lucide-react";
 
 export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
+  const [passwordValid, setPasswordValid] = useState(true);
+  const [password, setPassword] = useState("");
+  const [email, setEmail] = useState("");
+  const [emailValid, setEmailValid] = useState(true);
+
+  const validatePassword = (password: string) => {
+    const criteria = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
+    return criteria.test(password);
+  };
+
+  const isValidEmail = (email: string) => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email);
+  };
+
+  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newPassword = e.target.value;
+    setPassword(newPassword);
+    setPasswordValid(validatePassword(newPassword));
+  };
+
+  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const newEmail = e.target.value;
+    setEmail(newEmail);
+    setEmailValid(isValidEmail(newEmail));
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validatePassword(password) || !isValidEmail(email)) {
+      setPasswordValid(validatePassword(password));
+      setEmailValid(isValidEmail(email));
+      return;
+    }
+    // ...existing code...
+  };
 
   return (
     <div className="grid min-h- screen grid-cols-1 md:grid-cols-[45%_auto]">
@@ -38,7 +74,7 @@ export default function AuthPage() {
             </p>
           </div>
           <div className="grid gap-6">
-            <form>
+            <form onSubmit={handleSubmit}>
               <div className="grid gap-2">
                 <div className="grid grid-rows-3 gap-2">
                   <div>
@@ -50,6 +86,7 @@ export default function AuthPage() {
                       autoCapitalize="none"
                       autoComplete="text"
                       autoCorrect="off"
+                      required
                     />
                   </div>
                   <div>
@@ -61,7 +98,13 @@ export default function AuthPage() {
                       autoCapitalize="none"
                       autoComplete="email"
                       autoCorrect="off"
+                      value={email}
+                      onChange={handleEmailChange}
+                      required
                     />
+                    {!emailValid && (
+                      <p className="text-red-500 text-xs mt-1">Invalid email address</p>
+                    )}
                   </div>
                   <div>
                     <Label htmlFor="pass">Password</Label>
@@ -73,6 +116,8 @@ export default function AuthPage() {
                         autoCapitalize="none"
                         autoComplete="text"
                         autoCorrect="off"
+                        value={password}
+                        onChange={handlePasswordChange}
                       />
                       <button
                         type="button"
@@ -86,6 +131,17 @@ export default function AuthPage() {
                         )}
                       </button>
                     </div>
+                  </div>
+                  {!passwordValid && (
+                    <p className="text-red-500 text-xs mt-1">Password does not meet criteria</p>
+                  )}
+                  <div id="passwordCriteria" className="text-sm space-y-2">
+                    <p className="">Password Must contain:</p>
+                    <ul className="list-disc pl-5 space-y-1">
+                      <li>At least 1 uppercase</li>
+                      <li>At least 1 number</li>
+                      <li>At least 8 characters</li>
+                    </ul>
                   </div>
                 </div>
                 <Button className="w-full bg-red-600 hover:bg-red-700">
