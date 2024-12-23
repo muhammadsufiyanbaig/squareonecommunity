@@ -1,6 +1,6 @@
 import { Badge } from "@/components/ui/badge";
 import { brands } from "@/lib";
-import { Clock } from "lucide-react";
+import { CirclePlus, Clock } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React from "react";
@@ -60,6 +60,10 @@ const page = () => {
           </div>
         </div>
       ))}
+
+      <Link href={'/brands/add'} className="bg-red-500 p-4 rounded-full w-fit text-white hover:bg-red-700 transition-colors duration-150 cursor-pointer flex items-center justify-center fixed bottom-8 right-8">
+      <CirclePlus />
+      </Link>
     </div>
   );
 };

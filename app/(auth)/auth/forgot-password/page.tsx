@@ -1,3 +1,5 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -26,6 +28,7 @@ const ForgotPassword = () => {
       setEmailValid(false);
       return;
     }
+    window.location.href = "/auth/otp";
     // ...existing code...
   };
 

@@ -10,6 +10,8 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import Link from "next/link";
+import { Pencil } from "lucide-react";
 
 const Page = async ({ params }: { params: Promise<{ deal: string }> }) => {
   const deal = (await params).deal;
@@ -117,10 +119,14 @@ const Page = async ({ params }: { params: Promise<{ deal: string }> }) => {
               </TableBody>
             </Table>
           </div>
+          <Link href={`${deal}/editDeal`} className="bg-red-500 p-4 rounded-full w-fit text-white hover:bg-red-700 transition-colors duration-150 cursor-pointer flex items-center justify-center fixed bottom-8 right-8">
+          <Pencil />
+      </Link>
         </div>
       ) : (
         <p>Deal not found</p>
       )}
+      
     </div>
   );
 };

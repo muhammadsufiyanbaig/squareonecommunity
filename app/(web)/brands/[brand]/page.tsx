@@ -1,18 +1,17 @@
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { brands } from "@/lib";
-import { Calendar, Clock } from "lucide-react";
+import { Calendar, Clock, Pencil } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import React from "react";
+
+import React, { use } from "react";
 import { FaWhatsapp } from "react-icons/fa";
 
-const Page = async ({
-  params,
-}: {
-  params: Promise<{ brand: string }>
-}) => {
-  const brand = (await params).brand
+const Page = async ({ params }: { params: Promise<{ brand: string }> }) => {
+  const brand = (await params).brand;
   console.log("Params", brand);
+
   return (
     <div className="p-4 ">
       <div className="object-cover h-72 bg-white p-1 rounded-xl relative">
@@ -39,8 +38,14 @@ const Page = async ({
             />
           </div>
         </div>
-        <p className="font-semibold text-lg lg:text-3xl text-center -mt-16 pl-6">
+        <p className="font-semibold text-lg lg:text-3xl text-center -mt-16 pl-6 flex justify-center items-center gap-8">
           {brands[0].brandName}
+          <Link
+            href={`${brand}/edit`}
+            className="block relative cursor-pointer after:content-[''] after:w-full after:h-1 after:absolute after:left-0.5 after:bottom-0 after:bg-black"
+          >
+            <Pencil />
+          </Link>
         </p>
         <div className="flex flex-wrap justify-between items-center">
           <div className="flex items-center gap-2">
@@ -64,52 +69,57 @@ const Page = async ({
           </p>
         </div>
       </div>
-
-      <div className="py-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ">
-        {brands[0].deals.map((deal, index) => (
-          <div key={index} className="bg-white p-2 rounded-xl relative">
-            <Link
-              href={`/brands/${brands[0].brandName}/${deal.code}`}
-              className="absolute inset-0 z-20"
-            />
-            <div className="relative ">
-              <Image
-                src={"/deal.webp"}
-                alt={deal.title}
-                width={1000}
-                height={1000}
-                className="rounded-xl border"
+      <div>
+        <div className="mt-10 px-4 flex justify-between items-center">
+          <h1 className="text-2xl font-semibold ">Deals</h1>
+          <Link href={"brands/addDeal"}><Button className="bg-red-500 hover:bg-red-400">Add Deals</Button></Link>
+        </div>
+        <div className="py-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ">
+          {brands[0].deals.map((deal, index) => (
+            <div key={index} className="bg-white p-2 rounded-xl relative">
+              <Link
+                href={`/brands/${brands[0].brandName}/${deal.code}`}
+                className="absolute inset-0 z-20"
               />
-              <Badge className="bg-red-500 absolute top-3 right-3">
-                {deal.createdAt}
-              </Badge>
-            </div>
-            <div>
-              <div className="flex  gap-6">
-                <h4 className="font-semibold text-sm lg:text-xl mt-2">
-                  {deal.title}
-                </h4>
+              <div className="relative ">
+                <Image
+                  src={"/deal.webp"}
+                  alt={deal.title}
+                  width={1000}
+                  height={1000}
+                  className="rounded-xl border"
+                />
+                <Badge className="bg-red-500 absolute top-3 right-3">
+                  {deal.createdAt}
+                </Badge>
               </div>
-              <p className="text-lg line-clamp-1">{deal.tagline}</p>
-              <div className="flex  gap-2 justify-between py-4">
-                <div>
-                  <p className="text-xs font-semibold mb-2">Start</p>
-                  <div className="flex items-center gap-2 text-muted-foreground text-xs">
-                    <Calendar className="h-4 w-4" />
-                    <span>{deal.startDate}</span>
+              <div>
+                <div className="flex  gap-6">
+                  <h4 className="font-semibold text-sm lg:text-xl mt-2">
+                    {deal.title}
+                  </h4>
+                </div>
+                <p className="text-lg line-clamp-1">{deal.tagline}</p>
+                <div className="flex  gap-2 justify-between py-4">
+                  <div>
+                    <p className="text-xs font-semibold mb-2">Start</p>
+                    <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                      <Calendar className="h-4 w-4" />
+                      <span>{deal.startDate}</span>
+                    </div>
+                  </div>
+                  <div>
+                    <p className="text-xs font-semibold mb-2">End</p>
+                    <div className="flex items-center gap-2 text-muted-foreground text-xs">
+                      <Calendar className="h-4 w-4" />
+                      <span>{deal.endDate}</span>
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <p className="text-xs font-semibold mb-2">End</p>
-                  <div className="flex items-center gap-2 text-muted-foreground text-xs">
-                    <Calendar className="h-4 w-4" />
-                    <span>{deal.endDate}</span>
-                  </div>
-                </div>
               </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
