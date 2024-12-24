@@ -138,7 +138,7 @@ export default function BrandForm() {
               />
               <label
                 htmlFor="logoUpload"
-                className="flex flex-col items-center justify-center h-36"
+                className="flex flex-col items-center justify-center min-h-36"
               >
                 {uploadedUrl ? (
                   <div className="relative">

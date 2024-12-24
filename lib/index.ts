@@ -24,6 +24,19 @@ export type Brand = {
   deals: Deal[]; // Array of deals
 };
 
+export type Events = {
+  title: string;
+  description: string;
+  background: string;
+  banner: string;
+  brandWhatsappNo: string;
+  dates: {
+    start: string;
+    end: string;
+  };
+  activities: string[]; // Array of activities
+};
+
 
 export const brands: Brand[] = [
   {
@@ -175,6 +188,10 @@ export const findDeal = (brandName: string, dealCode: string) => {
   return brand.deals.find(d => d.code === dealCode);
 };
 
+export const findEvent = (eventTitle: string) => {
+  return events.find(e => e.title === eventTitle);
+};
+
 export type User = {
   userId: string;
   name: string;
@@ -202,5 +219,32 @@ export const users: User[] = [
     selectedDeals: [
       { dealTitle: "20% Off on First Purchase", dealCode: "FIRST20" },
     ],
+  },
+];
+
+export const events: Events[] = [
+  {
+    title: "Tech Expo 2024",
+    description: "Join us for the annual Tech Expo showcasing the latest in technology.",
+    background: "/chanel-banner.webp",
+    banner: "/chanel-banner.webp",
+    brandWhatsappNo: "+1234567890",
+    dates: {
+      start: "2024-11-01",
+      end: "2024-11-03",
+    },
+    activities: ["/chanel-banner.webp", "/chanel-banner.webp", "/chanel-banner.webp"],
+  },
+  {
+    title: "Gadget Fest",
+    description: "A festival celebrating the coolest gadgets and gizmos.",
+    background: "/chanel-banner.webp",
+    banner: "/chanel-banner.webp",
+    brandWhatsappNo: "+1234567890",
+    dates: {
+      start: "2024-12-15",
+      end: "2024-12-17",
+    },
+    activities: ["/chanel-banner.webp", "/chanel-banner.webp", "/chanel-banner.webp", "/chanel-banner.webp"],
   },
 ];

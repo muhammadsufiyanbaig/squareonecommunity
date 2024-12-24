@@ -5,7 +5,7 @@ import { UserNav } from "./user-nav";
 import { usePathname } from "next/navigation";
 
 const Header = () => {
-    let pathName = usePathname().split("/").pop()?.split("").map((char, i) => i === 0 ? char.toUpperCase() : char).join("");
+    let pathName: string = decodeURIComponent(usePathname().split("/").pop()?.split("").map((char, i) => i === 0 ? char.toUpperCase() : char).join("") || "");
     if (pathName === "") {
         pathName = "Dashboard"
     }   

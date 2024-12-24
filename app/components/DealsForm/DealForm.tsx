@@ -94,11 +94,6 @@ export default function DealForm() {
       <Card className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="brandId">Brand ID</Label>
-            <Input id="brandId" name="brandId" placeholder="Brand ID" required />
-          </div>
-
-          <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
             <Input id="title" name="title" placeholder="Deal Title" required />
           </div>
@@ -141,7 +136,7 @@ export default function DealForm() {
               />
               <label
                 htmlFor="pictureUpload"
-                className="flex flex-col items-center justify-center h-36"
+                className="flex flex-col items-center justify-center min-h-36"
               >
                 {uploadedPictureUrl ? (
                   <div className="relative">
@@ -189,7 +184,7 @@ export default function DealForm() {
               />
               <label
                 htmlFor="bannerUpload"
-                className="flex flex-col items-center justify-center h-36"
+                className="flex flex-col items-center justify-center min-h-36"
               >
                 {uploadedBannerUrl ? (
                   <div className="relative">

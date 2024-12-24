@@ -1,4 +1,4 @@
-import { Home, Settings, SquareChartGantt, UserRoundCheck, Users } from "lucide-react";
+import { CalendarDays, Home, Settings, SquareChartGantt, UserRoundCheck, Users } from "lucide-react";
 
 import {
   Sidebar,
@@ -28,6 +28,11 @@ const items = [
     title: "Brands",
     url: "/brands",
     icon: SquareChartGantt,
+  },
+  {
+    title: "Events",
+    url: "/events",
+    icon: CalendarDays,
   },
   {
     title: "Register Admin",
