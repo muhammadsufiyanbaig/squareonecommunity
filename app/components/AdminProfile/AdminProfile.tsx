@@ -64,17 +64,17 @@ export default function AdminProfile() {
           </div>
         </CardContent>
         <CardFooter>
+        <Button className="w-full relative bg-red-500 hover:bg-red-600">
           {isEditMode ? (
-            <Button className="w-full">
-              Save Changes
-            </Button>
+              "Save Changes"
           ) : (
-            <Button className="w-full relative">
+            <>
               <Link href="/profile/edit" className="absolute inset-0" />
               <Edit className="w-4 h-4 mr-2" />
               Edit Profile
+            </>
+            )}
             </Button>
-          )}
         </CardFooter>
       </Card>
     </div>
