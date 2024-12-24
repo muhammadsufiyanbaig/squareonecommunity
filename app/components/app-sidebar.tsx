@@ -40,8 +40,8 @@ const items = [
     icon: UserRoundCheck,
   },
   {
-    title: "Settings",
-    url: "#",
+    title: "Admin Profile",
+    url: "/profile",
     icon: Settings,
   },
 ];
