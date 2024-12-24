@@ -48,21 +48,7 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="grid min-h- screen grid-cols-1 md:grid-cols-[45%_auto]">
-      {/* Left section */}
-      <div className="relative hidden bg-black md:block">
-        <div className="flex h-full flex-col justify-between">
-          <Image
-            src={"/sqmall.png"}
-            alt="Image"
-            height={1000}
-            width={1000}
-            className="opacity-30 h-screen w-full object-cover"
-          />
-        </div>
-      </div>
-
-      {/* Right section */}
+    <div className="">
       <div className="flex items-center justify-center p-8">
         <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[450px]">
           <div className="flex flex-col space-y-2 text-center">
@@ -149,15 +135,6 @@ export default function AuthPage() {
                 </Button>
               </div>
             </form>
-          </div>
-
-          <div className="text-center">
-            <Link
-              href="/admin"
-              className="text-red-600 hover:text-red-700 text-sm"
-            >
-              Alredy have an account? Log In
-            </Link>
           </div>
         </div>
       </div>

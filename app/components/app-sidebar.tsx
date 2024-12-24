@@ -36,7 +36,7 @@ const items = [
   },
   {
     title: "Register Admin",
-    url: "/auth/register",
+    url: "/register",
     icon: UserRoundCheck,
   },
   {
