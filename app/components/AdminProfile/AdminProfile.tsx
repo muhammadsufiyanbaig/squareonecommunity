@@ -23,7 +23,7 @@ export default function AdminProfile() {
   const [adminEmail, setAdminEmail] = useState("john.doe@example.com");
 
   return (
-    <div className="flex items-center justify-center min-h-[85vh] bg-gray-100">
+    <div className="flex items-center justify-center min-h-[85vh] bg-gray-100 dark:bg-zinc-900">
       <Card className="w-full max-w-md">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">
@@ -64,7 +64,7 @@ export default function AdminProfile() {
           </div>
         </CardContent>
         <CardFooter>
-        <Button className="w-full relative bg-red-500 hover:bg-red-600">
+        <Button className="w-full relative bg-red-500 hover:bg-red-600 text-white">
           {isEditMode ? (
               "Save Changes"
           ) : (

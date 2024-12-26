@@ -20,13 +20,13 @@ const page = async ({ params }: { params: Promise<{ event: string }> }) => {
   if (!event) {
     return (
       <div className="flex items-center justify-center min-h-[400px]">
-        <p className="text-lg text-muted-foreground">Event not found</p>
+        <p className="text-lg text-muted-foreground text-theme">Event not found</p>
       </div>
     );
   }
 
   return (
-    <div className="container mx-auto py-8 px-4">
+    <div className="container mx-auto py-8 px-4 text-theme">
       <div className="grid lg:grid-cols-2 gap-8">
         {/* Left Column */}
         <div className="space-y-6">

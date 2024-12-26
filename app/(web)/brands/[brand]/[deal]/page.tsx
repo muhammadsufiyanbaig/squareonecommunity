@@ -26,10 +26,10 @@ const Page = async ({ params }: { params: Promise<{ deal: string }> }) => {
   );
 
   return (
-    <div className="p-4">
+    <div className="p-4 text-theme">
       {foundDeal ? (
         <div>
-          <div className="object-cover h-72 bg-white p-1 rounded-xl relative">
+          <div className="object-cover h-72 bg-white p-1 rounded-xl relative dark:bg-zinc-800/80">
             <Image
               src={"/deal.webp"}
               alt={brands[0].banner}
@@ -37,7 +37,7 @@ const Page = async ({ params }: { params: Promise<{ deal: string }> }) => {
               width={1000}
               className="rounded-xl object-cover h-full w-full"
             />
-            <Badge className="bg-red-500 absolute top-3 right-3">
+            <Badge className="bg-red-500 absolute top-3 right-3 text-white">
               {foundDeal.createdAt}
             </Badge>
           </div>

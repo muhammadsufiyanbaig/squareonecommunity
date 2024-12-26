@@ -3,7 +3,7 @@ import React from 'react'
 
 const page = () => {
   return (
-    <div>
+    <div className='dark:bg-zinc-900'>
         <AdminProfile />
     </div>
   )

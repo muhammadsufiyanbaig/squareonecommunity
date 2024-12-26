@@ -56,11 +56,11 @@ export default function UserTable() {
           placeholder="Search by name"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-[180px] px-2 py-1 border rounded-md"
+          className="w-[180px] px-2 py-1 border rounded-md dark:bg-zinc-700"
         />
       <div className='flex gap-4'>
       <Select onValueChange={(value) => setLocationFilter(value || null)}>
-          <SelectTrigger className="w-1/2 sm:w-[180px]">
+          <SelectTrigger className="w-1/2 sm:w-[180px] dark:bg-zinc-700 dark:text-white">
             <SelectValue placeholder="Filter by location" />
           </SelectTrigger>
           <SelectContent>
@@ -77,7 +77,7 @@ export default function UserTable() {
           </SelectContent>
         </Select>
         <Select onValueChange={(value) => setGenderFilter(value || null)}>
-          <SelectTrigger className="w-1/2 sm:w-[180px]">
+          <SelectTrigger className="w-1/2 sm:w-[180px] dark:bg-zinc-700 dark:text-white">
             <SelectValue placeholder="Filter by gender" />
           </SelectTrigger>
           <SelectContent>
@@ -95,8 +95,8 @@ export default function UserTable() {
         </Select>
       </div>
       </div>
-      <Table>
-        <TableHeader className="bg-red-100">
+      <Table className='text-theme'>
+        <TableHeader className="bg-red-100 dark:bg-[#C12835] dark:text-white">
           <TableRow>
             <TableHead>Profile Image</TableHead>
             <TableHead

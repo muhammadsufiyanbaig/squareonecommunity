@@ -45,7 +45,7 @@ body {
   .dark {
     --background: 240 10% 3.9%;
     --foreground: 0 0% 98%;
-    --card: 240 10% 3.9%;
+    --card: 240 5% 10%;
     --card-foreground: 0 0% 98%;
     --popover: 240 10% 3.9%;
     --popover-foreground: 0 0% 98%;
@@ -83,6 +83,10 @@ body {
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
-  }
+    @apply dark:bg-zinc-900 bg-white
+}
+
+.text-theme{
+  @apply dark:text-white text-black;
+}
 }

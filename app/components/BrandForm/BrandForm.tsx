@@ -200,7 +200,7 @@ export default function BrandForm() {
             />
           </div>
 
-          <Button type="submit" className="w-full bg-red-500 hover:bg-red-400">
+          <Button type="submit" className="w-full bg-red-500 hover:bg-red-400 text-white">
             Submit
           </Button>
         </form>
