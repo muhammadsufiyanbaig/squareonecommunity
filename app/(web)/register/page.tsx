@@ -48,9 +48,9 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="">
+    <div className="text-theme">
       <div className="flex items-center justify-center p-8">
-        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[450px]">
+        <div className="mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[450px] border px-3 py-6 rounded-xl">
           <div className="flex flex-col space-y-2 text-center">
             <h1 className="text-2xl font-semibold tracking-tight text-red-700">
               Create an account
@@ -130,7 +130,7 @@ export default function AuthPage() {
                     </ul>
                   </div>
                 </div>
-                <Button className="w-full bg-red-600 hover:bg-red-700">
+                <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
                   Create
                 </Button>
               </div>

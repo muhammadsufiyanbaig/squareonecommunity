@@ -8,7 +8,7 @@ const page = () => {
   return (
     <div className="p-4 space-y-4">
       {events.map((event, index) => (
-        <div key={index} className="bg-white p-2 rounded-xl ">
+        <div key={index} className="bg-white p-2 rounded-xl dark:bg-zinc-800">
           <div className="relative rounded-xl overflow-hidden">
             <Link
               href={`events/${encodeURIComponent(event.title)}`}

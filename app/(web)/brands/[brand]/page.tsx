@@ -13,8 +13,8 @@ const Page = async ({ params }: { params: Promise<{ brand: string }> }) => {
   console.log("Params", brand);
 
   return (
-    <div className="p-4 ">
-      <div className="object-cover h-72 bg-white p-1 rounded-xl relative">
+    <div className="p-4 text-theme">
+      <div className="object-cover h-72 bg-white dark:bg-zinc-800/80 p-1 rounded-xl relative">
         <Image
           src={brands[0].banner}
           alt={brands[0].banner}
@@ -22,7 +22,7 @@ const Page = async ({ params }: { params: Promise<{ brand: string }> }) => {
           width={1000}
           className="rounded-xl object-cover h-full w-full"
         />
-        <Badge className="bg-red-500 absolute top-3 right-3">
+        <Badge className="bg-red-500 absolute top-3 right-3 text-white">
           {brands[0].category}
         </Badge>
       </div>
@@ -40,12 +40,6 @@ const Page = async ({ params }: { params: Promise<{ brand: string }> }) => {
         </div>
         <p className="font-semibold text-lg lg:text-3xl text-center -mt-16 pl-6 flex justify-center items-center gap-8">
           {brands[0].brandName}
-          <Link
-            href={`${brand}/edit`}
-            className="block relative cursor-pointer after:content-[''] after:w-full after:h-1 after:absolute after:left-0.5 after:bottom-0 after:bg-black"
-          >
-            <Pencil />
-          </Link>
         </p>
         <div className="flex flex-wrap justify-between items-center">
           <div className="flex items-center gap-2">
@@ -68,15 +62,18 @@ const Page = async ({ params }: { params: Promise<{ brand: string }> }) => {
             consequuntur dolorum similique illo tempora doloribus.
           </p>
         </div>
+        <Link href={`${brand}/edit`} className="bg-red-500 p-4 rounded-full w-fit text-white hover:bg-red-700 transition-colors duration-150 cursor-pointer flex items-center justify-center fixed bottom-8 right-8 z-50">
+          <Pencil />
+      </Link>
       </div>
       <div>
         <div className="mt-10 px-4 flex justify-between items-center">
           <h1 className="text-2xl font-semibold ">Deals</h1>
-          <Link href={"brands/addDeal"}><Button className="bg-red-500 hover:bg-red-400">Add Deals</Button></Link>
+          <Link href={"brands/addDeal"}><Button className="bg-red-500 hover:bg-red-400 text-white">Add Deals</Button></Link>
         </div>
         <div className="py-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ">
           {brands[0].deals.map((deal, index) => (
-            <div key={index} className="bg-white p-2 rounded-xl relative">
+            <div key={index} className="bg-white dark:bg-zinc-900 dark:border p-2 rounded-xl relative">
               <Link
                 href={`/brands/${brands[0].brandName}/${deal.code}`}
                 className="absolute inset-0 z-20"
@@ -89,7 +86,7 @@ const Page = async ({ params }: { params: Promise<{ brand: string }> }) => {
                   height={1000}
                   className="rounded-xl border"
                 />
-                <Badge className="bg-red-500 absolute top-3 right-3">
+                <Badge className="bg-red-500 absolute top-3 right-3 text-white">
                   {deal.createdAt}
                 </Badge>
               </div>

@@ -34,8 +34,8 @@ export default function RootLayout({
     >
       <SidebarProvider>
         <AppSidebar />
-        <main className="w-full bg-gray-50">
-          <SidebarTrigger className="fixed top-4 z-50"/>
+        <main className="w-full">
+          <SidebarTrigger className="fixed top-4 z-50 text-theme"/>
         <Header />
           {children}
         </main>

@@ -9,7 +9,7 @@ const page = () => {
   return (
     <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ">
       {brands.map((brand, index) => (
-        <div key={index} className="bg-white p-2 rounded-xl relative">
+        <div key={index} className="bg-white dark:bg-zinc-900 text-theme dark:border p-2 rounded-xl relative">
           <Link href={"/brands/channel"} className="absolute inset-0 z-20"/>
           <div className="relative ">
             <Image
@@ -19,7 +19,7 @@ const page = () => {
               height={1000}
               className="rounded-xl border"
             />
-            <Badge className="bg-red-500 absolute top-3 right-3">
+            <Badge className="bg-red-500 absolute top-3 right-3 text-white">
               {brand.category}
             </Badge>
           </div>
