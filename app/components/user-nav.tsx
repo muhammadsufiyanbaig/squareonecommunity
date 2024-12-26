@@ -11,13 +11,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuShortcut,
   DropdownMenuTrigger,
-<<<<<<< Updated upstream
-} from "@/components/ui/dropdown-menu"
-=======
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import Switch from "./Switch-btn";
->>>>>>> Stashed changes
 
 export function UserNav() {
   return (
@@ -43,22 +39,12 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem>
-            Profile
-            <DropdownMenuShortcut>⇧⌘P</DropdownMenuShortcut>
-          </DropdownMenuItem>
-          <DropdownMenuItem>
-            Settings
-            <DropdownMenuShortcut>⌘S</DropdownMenuShortcut>
+          <Link href={"/profile"}>Profile</Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem>
-<<<<<<< Updated upstream
-          Log out
-          <DropdownMenuShortcut>⇧⌘Q</DropdownMenuShortcut>
-=======
           <Link href={"/logout"}>Log out</Link>
->>>>>>> Stashed changes
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
