@@ -15,7 +15,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
-import axios from "axios";
+import { uploadToCloudinary } from "@/lib/index"; 
 
 export default function BrandForm() {
   const [whatsAppNumber, setWhatsAppNumber] = useState<string>("+92-");
@@ -23,47 +23,36 @@ export default function BrandForm() {
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
 
-  const uploadToCloudinary = async (file: File) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append(
-      "upload_preset",
-      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || ""
-    );
-    try {
-        setUploadedUrl(null);
-      setLoading(true);
-      setError(null);
-      const response = await axios.post(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        formData
-      );
-      setUploadedUrl(response.data.secure_url);
-      setLoading(false);
-    } catch (error: any) {
-      console.error(
-        "Cloudinary Upload Error:",
-        error.response ? error.response.data : error
-      );
-      setError("Failed to upload image. Please try again.");
-      setLoading(false);
-    }
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith("image/")) {
-      uploadToCloudinary(file); // Upload the file immediately
+      setLoading(true);
+      setError(null);
+      const url = await uploadToCloudinary(file);
+      if (url) {
+        setUploadedUrl(url);
+      } else {
+        setError("Failed to upload image. Please try again.");
+      }
+      setLoading(false);
     }
   };
 
-  const handleDrop = (e: React.DragEvent<HTMLDivElement>) => {
+  const handleDrop = async (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault();
     e.stopPropagation();
 
     const file = e.dataTransfer.files[0];
     if (file && file.type.startsWith("image/")) {
-      uploadToCloudinary(file); // Upload the file immediately
+      setLoading(true);
+      setError(null);
+      const url = await uploadToCloudinary(file); // Use the reusable function
+      if (url) {
+        setUploadedUrl(url);
+      } else {
+        setError("Failed to upload image. Please try again.");
+      }
+      setLoading(false);
     }
   };
 

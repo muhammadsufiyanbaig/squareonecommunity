@@ -9,10 +9,15 @@ import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
 import axios from "axios";
+import { uploadToCloudinary } from "@/lib";
 
 export default function EventForm() {
-  const [uploadedBackgroundUrl, setUploadedBackgroundUrl] = useState<string | null | any>(null);
-  const [uploadedBannerUrl, setUploadedBannerUrl] = useState<string | null | any>(null);
+  const [uploadedBackgroundUrl, setUploadedBackgroundUrl] = useState<
+    string | null | any
+  >(null);
+  const [uploadedBannerUrl, setUploadedBannerUrl] = useState<
+    string | null | any
+  >(null);
   const [backgroundLoading, setBackgroundLoading] = useState<boolean>(false);
   const [bannerLoading, setBannerLoading] = useState<boolean>(false);
   const [backgroundError, setBackgroundError] = useState<string | null>(null);
@@ -21,65 +26,103 @@ export default function EventForm() {
   const [activityLoading, setActivityLoading] = useState<boolean>(false);
   const [activityError, setActivityError] = useState<string | null>(null);
 
-  const uploadToCloudinary = async (
-    file: File,
-    setUrl: (url: string | null | (string | null)[] | ((prev: string[] | null) => string[] | null)) => void,
-    setLoading: (loading: boolean) => void,
-    setError: (error: string | null) => void,
-    multiple: boolean = false
-  ) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append(
-      "upload_preset",
-      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || ""
-    );
-    try {
-      setLoading(true);
-      setError(null);
-      const response = await axios.post(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        formData
-      );
-      if (multiple) {
-        setUrl((prev: string[] | null) => (prev ? [...prev, response.data.secure_url] : [response.data.secure_url]));
-      } else {
-        setUrl(response.data.secure_url);
-      }
-      setLoading(false);
-    } catch (error: any) {
-      console.error(
-        "Cloudinary Upload Error:",
-        error.response ? error.response.data : error
-      );
-      setError("Failed to upload image. Please try again.");
-      setLoading(false);
-    }
-  };
-
-  const handleFileChange = (
+  const handleFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
-    setUrl: (url: string | null | (string | null)[] | ((prev: string[] | null) => string[] | null)) => void,
+    setUrl: (
+      url:
+        | string
+        | null
+        | (string | null)[]
+        | ((prev: string[] | null) => string[] | null)
+    ) => void,
     setLoading: (loading: boolean) => void,
     setError: (error: string | null) => void,
     multiple: boolean = false
   ) => {
     const files = e.target.files;
     if (files) {
-      Array.from(files).forEach((file) => {
+      setLoading(true);
+      setError(null);
+      const urls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
         if (file.type.startsWith("image/")) {
-          uploadToCloudinary(file, setUrl, setLoading, setError, multiple);
+          const url = await uploadToCloudinary(file);
+          if (url) {
+            urls.push(url);
+          } else {
+            setError("Failed to upload image. Please try again.");
+            setLoading(false);
+            return;
+          }
         }
-      });
+      }
+      setUrl(
+        multiple
+          ? (prev: string[] | null) => [...(prev || []), ...urls]
+          : urls[0]
+      );
+      setLoading(false);
+    }
+  };
+
+  const handleDrop = async (
+    e: React.DragEvent<HTMLDivElement>,
+    setUrl: (
+      url:
+        | string
+        | null
+        | (string | null)[]
+        | ((prev: string[] | null) => string[] | null)
+    ) => void,
+    setLoading: (loading: boolean) => void,
+    setError: (error: string | null) => void,
+    multiple: boolean = false
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const files = e.dataTransfer.files;
+    if (files) {
+      setLoading(true);
+      setError(null);
+      const urls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.type.startsWith("image/")) {
+          const url = await uploadToCloudinary(file);
+          if (url) {
+            urls.push(url);
+          } else {
+            setError("Failed to upload image. Please try again.");
+            setLoading(false);
+            return;
+          }
+        }
+      }
+      setUrl(
+        multiple
+          ? (prev: string[] | null) => [...(prev || []), ...urls]
+          : urls[0]
+      );
+      setLoading(false);
     }
   };
 
   const handleRemoveImage = (
-    setUrl: (url: string | null | (string | null)[] | ((prev: string[] | null) => string[] | null)) => void,
+    setUrl: (
+      url:
+        | string
+        | null
+        | (string | null)[]
+        | ((prev: string[] | null) => string[] | null)
+    ) => void,
     index: number | null = null
   ) => {
     if (index !== null) {
-      setUrl((prev: string[] | null) => prev?.filter((_, i) => i !== index) || []);
+      setUrl(
+        (prev: string[] | null) => prev?.filter((_, i) => i !== index) || []
+      );
     } else {
       setUrl(null);
     }
@@ -131,7 +174,21 @@ export default function EventForm() {
 
           <div className="space-y-2">
             <Label>Background</Label>
-            <div className="border-2 border-dashed rounded-lg p-6 text-center transition-colors border-gray-300 hover:border-primary">
+            <div
+              onDrop={(e) =>
+                handleDrop(
+                  e,
+                  setUploadedBackgroundUrl,
+                  setBackgroundLoading,
+                  setBackgroundError
+                )
+              }
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="border-2 border-dashed rounded-lg p-6 text-center transition-colors border-gray-300 hover:border-primary"
+            >
               <input
                 type="file"
                 accept="image/*"
@@ -162,7 +219,9 @@ export default function EventForm() {
                     />
                     <button
                       type="button"
-                      onClick={() => handleRemoveImage(setUploadedBackgroundUrl)}
+                      onClick={() =>
+                        handleRemoveImage(setUploadedBackgroundUrl)
+                      }
                       className="absolute top-0 right-0 p-1 bg-white rounded-full"
                     >
                       <X className="h-4 w-4 text-red-500" />
@@ -186,7 +245,21 @@ export default function EventForm() {
 
           <div className="space-y-2">
             <Label>Banner</Label>
-            <div className="border-2 border-dashed rounded-lg p-6 text-center transition-colors border-gray-300 hover:border-primary">
+            <div
+              onDrop={(e) =>
+                handleDrop(
+                  e,
+                  setUploadedBannerUrl,
+                  setBannerLoading,
+                  setBannerError
+                )
+              }
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors border-gray-300 hover:border-primary"
+            >
               <input
                 type="file"
                 accept="image/*"
@@ -231,7 +304,7 @@ export default function EventForm() {
                   <>
                     <Upload className="mx-auto h-12 w-12 text-gray-400" />
                     <p className="mt-2 text-sm text-gray-600">
-                      Drag & drop your banner image here, or click to select
+                      Drag & drop your banner here, or click to select
                     </p>
                   </>
                 )}
@@ -241,7 +314,21 @@ export default function EventForm() {
 
           <div className="space-y-2">
             <Label>Activities</Label>
-            <div className="border-2 border-dashed rounded-lg p-6 text-center transition-colors border-gray-300 hover:border-primary">
+            <div 
+            onDrop={(e) =>
+              handleDrop(
+                e,
+                setActivityImages,
+                setActivityLoading,
+                setActivityError,
+                true
+              )
+            }
+            onDragOver={(e) => {
+              e.preventDefault();
+              e.stopPropagation();
+            }}
+            className="border-2 border-dashed rounded-lg p-6 text-center transition-colors border-gray-300 hover:border-primary">
               <input
                 type="file"
                 accept="image/*"
@@ -276,7 +363,9 @@ export default function EventForm() {
                         />
                         <button
                           type="button"
-                          onClick={() => handleRemoveImage(setActivityImages, index)}
+                          onClick={() =>
+                            handleRemoveImage(setActivityImages, index)
+                          }
                           className="absolute top-0 right-0 p-1 bg-white rounded-full"
                         >
                           <X className="h-4 w-4 text-red-500" />

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
-import axios from "axios";
+import { uploadToCloudinary } from "@/lib/index"; // Import the function
 
 export default function DealForm() {
   const [uploadedPictureUrl, setUploadedPictureUrl] = useState<string | null>(null);
@@ -18,41 +18,7 @@ export default function DealForm() {
   const [pictureError, setPictureError] = useState<string | null>(null);
   const [bannerError, setBannerError] = useState<string | null>(null);
 
-  const uploadToCloudinary = async (
-    file: File,
-    setUrl: (url: string | null) => void,
-    setLoading: (loading: boolean) => void,
-    setError: (error: string | null) => void
-  ) => {
-    const formData = new FormData();
-    formData.append("file", file);
-    formData.append(
-      "upload_preset",
-      process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || ""
-    );
-    try {
-      setUrl(null);
-      setLoading(true);
-      setError(null);
-      setPictureError(null);
-      setBannerError(null);
-      const response = await axios.post(
-        `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
-        formData
-      );
-      setUrl(response.data.secure_url);
-      setLoading(false);
-    } catch (error: any) {
-      console.error(
-        "Cloudinary Upload Error:",
-        error.response ? error.response.data : error
-      );
-      setError("Failed to upload image. Please try again.");
-      setLoading(false);
-    }
-  };
-
-  const handleFileChange = (
+  const handleFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
     setUrl: (url: string | null) => void,
     setLoading: (loading: boolean) => void,
@@ -60,7 +26,38 @@ export default function DealForm() {
   ) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith("image/")) {
-      uploadToCloudinary(file, setUrl, setLoading, setError); // Upload the file immediately
+      setLoading(true);
+      setError(null);
+      const url = await uploadToCloudinary(file);
+      if (url) {
+        setUrl(url);
+      } else {
+        setError("Failed to upload image. Please try again.");
+      }
+      setLoading(false);
+    }
+  };
+
+  const handleDrop = async (
+    e: React.DragEvent<HTMLDivElement>,
+    setUrl: (url: string | null) => void,
+    setLoading: (loading: boolean) => void,
+    setError: (error: string | null) => void
+  ) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const file = e.dataTransfer.files[0];
+    if (file && file.type.startsWith("image/")) {
+      setLoading(true);
+      setError(null);
+      const url = await uploadToCloudinary(file);
+      if (url) {
+        setUrl(url);
+      } else {
+        setError("Failed to upload image. Please try again.");
+      }
+      setLoading(false);
     }
   };
 
@@ -125,7 +122,14 @@ export default function DealForm() {
 
           <div className="space-y-2">
             <Label>Picture</Label>
-            <div className="border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors border-gray-300 hover:border-primary">
+            <div
+              onDrop={(e) => handleDrop(e, setUploadedPictureUrl, setPictureLoading, setPictureError)}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors border-gray-300 hover:border-primary"
+            >
               <input
                 type="file"
                 accept="image/*"
@@ -173,7 +177,14 @@ export default function DealForm() {
 
           <div className="space-y-2">
             <Label>Banner</Label>
-            <div className="border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors border-gray-300 hover:border-primary">
+            <div
+              onDrop={(e) => handleDrop(e, setUploadedBannerUrl, setBannerLoading, setBannerError)}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+              }}
+              className="border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors border-gray-300 hover:border-primary"
+            >
               <input
                 type="file"
                 accept="image/*"

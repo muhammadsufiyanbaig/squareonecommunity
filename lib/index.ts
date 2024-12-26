@@ -1,3 +1,5 @@
+import axios from "axios";
+
 export type Deal = {
   title: string;
   description: string;
@@ -248,3 +250,25 @@ export const events: Events[] = [
     activities: ["/chanel-banner.webp", "/chanel-banner.webp", "/chanel-banner.webp", "/chanel-banner.webp"],
   },
 ];
+
+export const uploadToCloudinary = async (file: File): Promise<string | null> => {
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append(
+    "upload_preset",
+    process.env.NEXT_PUBLIC_CLOUDINARY_UPLOAD_PRESET || ""
+  );
+  try {
+    const response = await axios.post(
+      `https://api.cloudinary.com/v1_1/${process.env.NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME}/image/upload`,
+      formData
+    );
+    return response.data.secure_url;
+  } catch (error: any) {
+    console.error(
+      "Cloudinary Upload Error:",
+      error.response ? error.response.data : error
+    );
+    return null;
+  }
+};
