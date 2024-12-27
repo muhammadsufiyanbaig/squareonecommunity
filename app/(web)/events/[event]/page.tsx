@@ -104,7 +104,7 @@ const page = async ({ params }: { params: Promise<{ event: string }> }) => {
 
         {/* Right Column */}
         <div className="h-fit">
-        <div className="grid gap-4 sm:grid-cols-2 mb-4">
+        <div className="grid gap-4 sm:grid-cols-2 mb-4 mt-14">
               <Card>
                 <CardContent className="p-4">
                   <div className="flex items-center gap-2">
@@ -134,12 +134,13 @@ const page = async ({ params }: { params: Promise<{ event: string }> }) => {
               </Card>
             </div>
           <div className="aspect-[9/16] relative rounded-xl overflow-hidden">
+          <h1 className="text-3xl font-bold py-6">Background Image</h1>
             <Image
               src={event.background}
               alt={event.title}
-              fill
-              className="object-cover object-right"
-              priority
+              height={1000}
+              width={1000}
+              className="object-cover object-right rounded-xl h-full w-full"
               sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
             />
           </div>
