@@ -6,28 +6,61 @@ import { Input } from "@/components/ui/input";
 import Image from "next/image";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import axiosInstance from "@/app/axiosInstanse";
+import { useRouter } from "next/navigation"; // Updated import
+import useAuthStore from "@/lib/base"; // Import the Zustand store
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [email, setEmail] = useState("");
   const [emailValid, setEmailValid] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
+  const [errormsg, setErrorMsg] = useState(null);
+  const router = useRouter();
+  const { setAdminEmail: setStoreEmail, setFullname: setStoreFullname } =
+    useAuthStore();
 
   const isValidEmail = (email: string) => {
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     return emailRegex.test(email);
   };
 
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setEmail(e.target.value);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    setLoading(true);
+    setEmailValid(true);
     e.preventDefault();
     if (!isValidEmail(email)) {
       setEmailValid(false);
+      setLoading(false);
       return;
     }
-    setEmailValid(true);
+    if (!formData.email || !formData.password) {
+      alert("Please fill in all fields before submitting");
+      setLoading(false);
+      return;
+    }
+    try {
+      const response = await axiosInstance.post("/admin/auth/login", formData);
+      if (response.status === 200 || response.status === 201) {
+        const { email, fullname } = response.data.data[0];
+        setStoreEmail(email);
+        setStoreFullname(fullname);
+        console.log(email, fullname);
+        router.push("/");
+      }
+    } catch (error: any) {
+      console.error("Signup error:", error.response?.data || error.message);
+      const errorMsg =
+        error.response?.data?.message || "An error occurred. Please try again";
+      setErrorMsg(errorMsg);
+      alert(errorMsg);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,9 +92,13 @@ export default function LoginForm() {
               id="email"
               type="text"
               placeholder="Email"
+              name="email"
               className="w-full border-b border-t-0 border-x-0 rounded-none focus-visible:ring-0 px-0"
               value={email}
-              onChange={handleEmailChange}
+              onChange={(e) => {
+                setEmail(e.target.value);
+                setFormData({ ...formData, email: e.target.value });
+              }}
             />
             {!emailValid && (
               <p className="text-red-600 text-xs mt-2" id="email-error">
@@ -78,8 +115,12 @@ export default function LoginForm() {
               <Input
                 id="password"
                 type={showPassword ? "text" : "password"}
+                name="password"
                 placeholder="Password"
                 className="w-full border-b border-t-0 border-x-0 rounded-none focus-visible:ring-0  px-0"
+                onChange={(e) => {
+                  setFormData({ ...formData, password: e.target.value });
+                }}
               />
               <button
                 type="button"
@@ -101,7 +142,7 @@ export default function LoginForm() {
           </div>
 
           <Button className="w-full bg-red-600 hover:bg-red-700 h-10 rounded-lg text-sm">
-            LOGIN
+            {loading ? "Loading..." : "Login"}
           </Button>
         </form>
       </div>
