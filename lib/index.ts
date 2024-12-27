@@ -249,6 +249,18 @@ export const events: Events[] = [
     },
     activities: ["/chanel-banner.webp", "/chanel-banner.webp", "/chanel-banner.webp", "/chanel-banner.webp"],
   },
+  {
+    title: "Gadget Fest",
+    description: "A festival celebrating the coolest gadgets and gizmos.",
+    background: "/chanel-banner.webp",
+    banner: "/chanel-banner.webp",
+    brandWhatsappNo: "+1234567890",
+    dates: {
+      start: "2024-12-15",
+      end: "2024-12-17",
+    },
+    activities: ["/chanel-banner.webp", "/chanel-banner.webp", "/chanel-banner.webp", "/chanel-banner.webp"],
+  },
 ];
 
 export const uploadToCloudinary = async (file: File): Promise<string | null> => {

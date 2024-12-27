@@ -1,4 +1,23 @@
-import { CalendarDays, Home, Settings, SquareChartGantt, UserRoundCheck, Users } from "lucide-react";
+import {
+  CalendarDays,
+  ChevronDown,
+  Home,
+  Settings,
+  SquareChartGantt,
+  UserRoundCheck,
+  Users,
+} from "lucide-react";
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuShortcut,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 import {
   Sidebar,
@@ -18,31 +37,37 @@ const items = [
     title: "Home",
     url: "/",
     icon: Home,
+    dropdown: false,
   },
   {
     title: "Users",
     url: "/users",
     icon: Users,
+    dropdown: false,
   },
   {
     title: "Brands",
     url: "/brands",
     icon: SquareChartGantt,
+    dropdown: true,
   },
   {
     title: "Events",
     url: "/events",
     icon: CalendarDays,
+    dropdown: false,
   },
   {
     title: "Register Admin",
     url: "/register",
     icon: UserRoundCheck,
+    dropdown: false,
   },
   {
     title: "Admin Profile",
     url: "/profile",
     icon: Settings,
+    dropdown: false,
   },
 ];
 
@@ -70,10 +95,38 @@ export function AppSidebar() {
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <Link href={item.url}>
+                    <div>
                       <item.icon />
-                      <span>{item.title}</span>
-                    </Link>
+                      <div className="flex items-center w-full">
+                        <Link href={item.url} className="flex-1">
+                          {item.title}
+                        </Link>
+                        {item.dropdown && (
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <ChevronDown className="h-4 w-4 cursor-pointer" />
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent
+                              className="w-56"
+                              align="end"
+                              forceMount
+                            >
+                              <DropdownMenuGroup>
+                                <DropdownMenuItem>
+                                  <Link href={"/brands"}>All Brands</Link>
+                                </DropdownMenuItem>
+                              </DropdownMenuGroup>
+                              <DropdownMenuSeparator />
+                              <DropdownMenuGroup>
+                                <DropdownMenuItem>
+                                  <Link href={"/brands/add"}>Add Brands</Link>
+                                </DropdownMenuItem>
+                              </DropdownMenuGroup>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        )}
+                      </div>
+                    </div>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}

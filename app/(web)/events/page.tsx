@@ -6,7 +6,7 @@ import React from "react";
 
 const page = () => {
   return (
-    <div className="p-4 space-y-4">
+    <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 ">
       {events.map((event, index) => (
         <div key={index} className="bg-white p-2 rounded-xl dark:bg-zinc-800">
           <div className="relative rounded-xl overflow-hidden">
@@ -20,10 +20,10 @@ const page = () => {
               alt={event.banner}
               width={1000}
               height={1000}
-              className="rounded-xl border h-80 w-full object-cover"
+              className="rounded-xl border h-64 w-full object-cover"
             />
 
-            <div className="flex justify-between items-center absolute bottom-4 px-4 w-full text-white z-50">
+            <div className="flex justify-between items-center absolute bottom-2 px-4 w-full text-white z-50">
               <h4 className="font-semibold text-xl mt-2">{event.title}</h4>
               <div className="flex flex-col gap-2  p-4">
                 <div>
