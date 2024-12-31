@@ -1,22 +1,47 @@
 "use client";
 
-import { useState } from "react";
-import { Upload, X } from "lucide-react"; // Import the X icon
+import { useEffect, useState } from "react";
+import { Upload, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
-import { uploadToCloudinary } from "@/lib/index"; // Import the function
+import { Brand, uploadToCloudinary } from "@/lib/index";
+import { usePathname } from "next/navigation";
+import { useBrandStore } from "@/lib/base";
+import axiosInstance from "@/app/axiosInstanse";
+import Spinner from "../Spinner";
 
 export default function DealForm() {
-  const [uploadedPictureUrl, setUploadedPictureUrl] = useState<string | null>(null);
-  const [uploadedBannerUrl, setUploadedBannerUrl] = useState<string | null>(null);
+  const [uploadedPictureUrl, setUploadedPictureUrl] = useState<string | null>(
+    null
+  );
+  const [uploadedBannerUrl, setUploadedBannerUrl] = useState<string | null>(
+    null
+  );
   const [pictureLoading, setPictureLoading] = useState<boolean>(false);
   const [bannerLoading, setBannerLoading] = useState<boolean>(false);
   const [pictureError, setPictureError] = useState<string | null>(null);
   const [bannerError, setBannerError] = useState<string | null>(null);
+  const [tempBrand, setTempBrand] = useState<Brand | null>(null);
+  const [reqLoading, setReqLoading] = useState<boolean>(false);
+  const { brands } = useBrandStore();
+  const pathname = usePathname();
+  const brandName = pathname.split("/")[3];
+
+  useEffect(() => {
+    if (brandName) {
+      const brand = brands.find(
+        (brand) => brand.brandname === decodeURIComponent(brandName)
+      );
+      if (brand) {
+        setTempBrand(brand);
+      }
+    }
+  }, [brandName, brands]);
+
 
   const handleFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -73,7 +98,7 @@ export default function DealForm() {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
     const data = {
-      brandId: formData.get("brandId"),
+      brandId: tempBrand?.brandid,
       title: formData.get("title"),
       description: formData.get("description"),
       tagline: formData.get("tagline"),
@@ -83,7 +108,19 @@ export default function DealForm() {
       banner: uploadedBannerUrl,
       createdBy: new Date().toISOString(),
     };
-    console.log(data);
+
+    try {
+      let response = await axiosInstance.post("/deal/create", data);
+
+      if (response.status === 200 || response.status === 201) {
+        alert(`Deal ${tempBrand} "created" successfully`);
+      }
+    } catch (error: any) {
+      console.error("error:", error.response?.data || error.message);
+      alert(error);
+    } finally {
+      setReqLoading(false);
+    }
   };
 
   return (
@@ -123,7 +160,14 @@ export default function DealForm() {
           <div className="space-y-2">
             <Label>Picture</Label>
             <div
-              onDrop={(e) => handleDrop(e, setUploadedPictureUrl, setPictureLoading, setPictureError)}
+              onDrop={(e) =>
+                handleDrop(
+                  e,
+                  setUploadedPictureUrl,
+                  setPictureLoading,
+                  setPictureError
+                )
+              }
               onDragOver={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -136,7 +180,14 @@ export default function DealForm() {
                 className="hidden"
                 id="pictureUpload"
                 name="picture"
-                onChange={(e) => handleFileChange(e, setUploadedPictureUrl, setPictureLoading, setPictureError)}
+                onChange={(e) =>
+                  handleFileChange(
+                    e,
+                    setUploadedPictureUrl,
+                    setPictureLoading,
+                    setPictureError
+                  )
+                }
               />
               <label
                 htmlFor="pictureUpload"
@@ -153,7 +204,12 @@ export default function DealForm() {
                     />
                     <button
                       type="button"
-                      onClick={() => handleRemoveImage(setUploadedPictureUrl, setPictureError)}
+                      onClick={() =>
+                        handleRemoveImage(
+                          setUploadedPictureUrl,
+                          setPictureError
+                        )
+                      }
                       className="absolute top-0 right-0 p-1 bg-white rounded-full"
                     >
                       <X className="h-4 w-4 text-red-500" />
@@ -178,7 +234,14 @@ export default function DealForm() {
           <div className="space-y-2">
             <Label>Banner</Label>
             <div
-              onDrop={(e) => handleDrop(e, setUploadedBannerUrl, setBannerLoading, setBannerError)}
+              onDrop={(e) =>
+                handleDrop(
+                  e,
+                  setUploadedBannerUrl,
+                  setBannerLoading,
+                  setBannerError
+                )
+              }
               onDragOver={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -191,7 +254,14 @@ export default function DealForm() {
                 className="hidden"
                 id="bannerUpload"
                 name="banner"
-                onChange={(e) => handleFileChange(e, setUploadedBannerUrl, setBannerLoading, setBannerError)}
+                onChange={(e) =>
+                  handleFileChange(
+                    e,
+                    setUploadedBannerUrl,
+                    setBannerLoading,
+                    setBannerError
+                  )
+                }
               />
               <label
                 htmlFor="bannerUpload"
@@ -208,7 +278,9 @@ export default function DealForm() {
                     />
                     <button
                       type="button"
-                      onClick={() => handleRemoveImage(setUploadedBannerUrl, setBannerError)}
+                      onClick={() =>
+                        handleRemoveImage(setUploadedBannerUrl, setBannerError)
+                      }
                       className="absolute top-0 right-0 p-1 bg-white rounded-full"
                     >
                       <X className="h-4 w-4 text-red-500" />
@@ -230,8 +302,11 @@ export default function DealForm() {
             </div>
           </div>
 
-          <Button type="submit" className="w-full bg-red-500 hover:bg-red-400 text-white">
-            Submit
+          <Button
+            type="submit"
+            className="w-full bg-red-500 hover:bg-red-400 text-white"
+          >
+            {reqLoading ? <Spinner /> : "Submit"}
           </Button>
         </form>
       </Card>

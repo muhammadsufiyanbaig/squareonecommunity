@@ -11,7 +11,7 @@ import React, { useEffect, useState } from "react";
 import { FaWhatsapp } from "react-icons/fa";
 
 const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
-  const [brandName, setBrandName] = useState<string | null>(null);
+  const [brandName, setBrandName] = useState<string>("");
 
 
   useEffect(() => {
@@ -22,9 +22,9 @@ const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
 
   const { brands } = useBrandStore();
 
-  const brand = brands.find((brand) => brand.brandname === brandName);
+  const brand = brands.find((brand) => brand.brandname === decodeURIComponent(brandName));
 
-  if (!brandName) {
+  if (!brand) {
     return (
       <div className="p-4 text-theme">
         <div className="animate-pulse">
@@ -104,10 +104,7 @@ const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
         <div className="mt-4 space-y-4">
           <h2 className="text-2xl font-semibold">Description</h2>
           <p>
-            {brand!.description} Lorem ipsum dolor sit, amet consectetur
-            adipisicing elit. Quaerat optio aliquam, quisquam totam iusto atque
-            magnam reiciendis eveniet. Eius porro architecto ratione iure nemo
-            consequuntur dolorum similique illo tempora doloribus.
+            {brand!.description}
           </p>
         </div>
         <Link
@@ -120,7 +117,7 @@ const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
       <div>
         <div className="mt-10 px-4 flex justify-between items-center">
           <h1 className="text-2xl font-semibold ">Deals</h1>
-          <Link href={"brands/addDeal"}>
+          <Link href={`brands/${decodeURIComponent(brandName)}/addDeal`}>
             <Button className="bg-red-500 hover:bg-red-400 text-white">
               Add Deals
             </Button>

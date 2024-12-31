@@ -1,7 +1,9 @@
+"use client"
+
 import { Badge } from "@/components/ui/badge";
-import { brands, users } from "@/lib";
+import { Deal, findDeal } from "@/lib";
 import Image from "next/image";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -12,54 +14,57 @@ import {
 } from "@/components/ui/table";
 import Link from "next/link";
 import { Pencil } from "lucide-react";
+import { useBrandStore } from "@/lib/base";
+import { usePathname } from "next/navigation";
 
-const Page = async ({ params }: { params: Promise<{ deal: string }> }) => {
-  const deal = (await params).deal;
+const Page =  ({ params }: { params: { deal: string } }) => {
+  const [dealTitle, setDealTitle] = useState<string>(params.deal);
+  const [foundedDeal, setFoundedDeal] = useState<Deal | null>(null);
 
-  console.log(deal)
-  const brand = brands.find((brand) =>
-    brand.deals.some((d) => d.code === deal)
-  );
-  const foundDeal = brand?.deals.find((d) => d.code === deal);
-  const dealUsers = users.filter((user) =>
-    user.selectedDeals.some((d) => d.dealCode === deal)
-  );
+  const { brands } = useBrandStore();
+  const pathname = usePathname();
+  const brandName = pathname.split("/")[2];
 
+  useEffect(() => {
+    const foundDeal = findDeal(brands, decodeURIComponent(brandName), decodeURIComponent(dealTitle)); 
+    setFoundedDeal(foundDeal || null);
+  }, [brands, brandName, dealTitle]);
+  
   return (
     <div className="p-4 text-theme">
-      {foundDeal ? (
+      {foundedDeal ? (
         <div>
           <div className="object-cover h-72 bg-white p-1 rounded-xl relative dark:bg-zinc-800/80">
             <Image
               src={"/deal.webp"}
-              alt={brands[0].banner}
+              alt={"brands[0]"}
               height={1000}
               width={1000}
               className="rounded-xl object-cover h-full w-full"
             />
             <Badge className="bg-red-500 absolute top-3 right-3 text-white">
-              {foundDeal.createdAt}
+              {new Date(foundedDeal.createdAt).toDateString()}
             </Badge>
           </div>
           <div className="flex flex-wrap justify-between mt-2 px-4">
             <div className="space-y-1">
-              <h2 className="text-2xl font-semibold">{foundDeal.title}</h2>
-              <p>{foundDeal.tagline}</p>
+              <h2 className="text-2xl font-semibold">{foundedDeal.title}</h2>
+              <p>{foundedDeal.tagline}</p>
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <strong>Starting From:</strong>
-                <p>{foundDeal.startDate}</p>
+                <p>{new Date(foundedDeal.startDate).toDateString()}</p>
               </div>
               <div className="flex items-center gap-2">
                 <strong>Valid until:</strong>
-                <p>{foundDeal.endDate}</p>
+                <p>{new Date(foundedDeal.endDate).toDateString()}</p>
               </div>
             </div>
             <div className="!mt-4 space-y-4">
               <h2 className="text-2xl font-semibold">Description</h2>
               <p>
-                {foundDeal.description} Lorem ipsum dolor sit, amet consectetur
+                {foundedDeal.description} Lorem ipsum dolor sit, amet consectetur
                 adipisicing elit. Quaerat optio aliquam, quisquam totam iusto
                 atque magnam reiciendis eveniet. Eius porro architecto ratione
                 iure nemo consequuntur dolorum similique illo tempora doloribus.
@@ -73,40 +78,29 @@ const Page = async ({ params }: { params: Promise<{ deal: string }> }) => {
               <TableHeader>
                 <TableRow>
                   <TableHead>User Picture</TableHead>
-                  <TableHead>User Details</TableHead>
-                  <TableHead>Brand Logo</TableHead>
-                  <TableHead>Brand Name</TableHead>
+                  <TableHead>User Name</TableHead>
+                  <TableHead>Brand What'sApp</TableHead>
                   <TableHead>Deal Code</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {dealUsers[0] ? (
-                  dealUsers.map((user) => (
-                    <TableRow key={user.userId}>
+                {foundedDeal.code && foundedDeal.code.length > 0 ? (
+                  foundedDeal.code.map((user, i) => (
+                    <TableRow key={i}>
                       <TableCell>
                         <Image
-                          src="/user-pic-placeholder.jpg"
-                          alt={user.name}
+                          src={user.profileImage || "/user-pic-placeholder.jpg"}
+                          alt={user.fullName}
                           width={50}
                           height={50}
                           className="rounded-full"
                         />
                       </TableCell>
                       <TableCell className="flex flex-col justify-center">
-                        <span>{user.name}</span>
-                        <span>{user.whatAppNo}</span>
+                        <span>{user.fullName}</span>
                       </TableCell>
-                      <TableCell>
-                        <Image
-                          src={brand?.logoImage || ""}
-                          alt={brand?.brandName || ""}
-                          width={1000}
-                          height={1000}
-                          className="rounded-full aspect-square object-cover h-12 w-12"
-                        />
-                      </TableCell>
-                      <TableCell>{brand?.brandName}</TableCell>
-                      <TableCell>{deal}</TableCell>
+                      <TableCell>{user.whatsAppNo}</TableCell>
+                      <TableCell>{user.code}</TableCell>
                     </TableRow>
                   ))
                 ) : (
@@ -119,14 +113,13 @@ const Page = async ({ params }: { params: Promise<{ deal: string }> }) => {
               </TableBody>
             </Table>
           </div>
-          <Link href={`${deal}/editDeal`} className="bg-red-500 p-4 rounded-full w-fit text-white hover:bg-red-700 transition-colors duration-150 cursor-pointer flex items-center justify-center fixed bottom-8 right-8">
+          {/* <Link href={`${deal}/editDeal`} className="bg-red-500 p-4 rounded-full w-fit text-white hover:bg-red-700 transition-colors duration-150 cursor-pointer flex items-center justify-center fixed bottom-8 right-8">
           <Pencil />
-      </Link>
+      </Link> */}
         </div>
       ) : (
         <p>Deal not found</p>
       )}
-      
     </div>
   );
 };

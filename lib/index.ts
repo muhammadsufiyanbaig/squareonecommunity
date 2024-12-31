@@ -44,15 +44,16 @@ export type Events = {
     start: string;
     end: string;
   };
-  activities: string[]; // Array of activities
+  activities: string[]; 
 };
 
 export let brands: Brand[] = [];
 
-export const findDeal = (brandname: string, dealCode: string) => {
-  const brand = brands.find((b) => b.brandname === brandname);
-  if (!brand) return null;
-  return brand.deals.find((d) => d.code?.some(c => c.code === dealCode));
+export const findDeal = (array: Brand[], brandname: string, dealTitle: string) => {
+  const brand = array.find((b) => b.brandname === brandname);
+  if (!brand) return null;  
+  const deal = brand.deals.find((d) => d.title === dealTitle);
+  return deal;
 };
 
 export const findEvent = (eventTitle: string) => {
