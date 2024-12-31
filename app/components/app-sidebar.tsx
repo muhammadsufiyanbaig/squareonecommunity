@@ -113,13 +113,13 @@ export function AppSidebar() {
                             >
                               <DropdownMenuGroup>
                                 <DropdownMenuItem>
-                                  <Link href={"/brands"}>All Brands</Link>
+                                  <Link className="flex-1" href={"/brands"}>All Brands</Link>
                                 </DropdownMenuItem>
                               </DropdownMenuGroup>
                               <DropdownMenuSeparator />
                               <DropdownMenuGroup>
                                 <DropdownMenuItem>
-                                  <Link href={"/brands/add"}>Add Brands</Link>
+                                  <Link className="flex-1" href={"/brands/add"}>Add Brands</Link>
                                 </DropdownMenuItem>
                               </DropdownMenuGroup>
                             </DropdownMenuContent>

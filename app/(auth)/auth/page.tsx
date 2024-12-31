@@ -21,7 +21,7 @@ export default function LoginForm() {
   });
   const [errormsg, setErrorMsg] = useState(null);
   const router = useRouter();
-  const { setAdminEmail: setStoreEmail, setFullname: setStoreFullname } =
+  const { setAdminEmail: setStoreEmail, setFullname: setStoreFullname, setAdminId: setStoreId } =
     useAuthStore();
 
   const isValidEmail = (email: string) => {
@@ -44,12 +44,13 @@ export default function LoginForm() {
       return;
     }
     try {
-      const response = await axiosInstance.post("/admin/auth/login", formData);
+      const response = await axiosInstance.post("/admin/auth/login", formData, {withCredentials: true});
       if (response.status === 200 || response.status === 201) {
-        const { email, fullname } = response.data.data[0];
+        const {id, email, fullname } = response.data.data[0];
+        setStoreId(id);
         setStoreEmail(email);
         setStoreFullname(fullname);
-        console.log(email, fullname);
+        // console.log(response.data);
         router.push("/");
       }
     } catch (error: any) {

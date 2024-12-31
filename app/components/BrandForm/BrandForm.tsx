@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Upload, X } from "lucide-react"; // Import the X icon
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -15,13 +15,47 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
-import { uploadToCloudinary } from "@/lib/index"; 
+import { Brand, uploadToCloudinary } from "@/lib/index"; 
+import axiosInstance from "@/app/axiosInstanse";
+import useAuthStore, { useBrandStore } from "@/lib/base";
+import { usePathname } from "next/navigation";
+import Spinner from "../Spinner";
 
-export default function BrandForm() {
+interface BrandFormProps {
+  brandName?: string;
+}
+
+export default function BrandForm({ brandName: initialBrandName }: BrandFormProps) {
   const [whatsAppNumber, setWhatsAppNumber] = useState<string>("+92-");
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [reqLoading, setReqLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const { id } = useAuthStore();
+  const brandName = initialBrandName || null;
+  const [brand, setBrands] = useState<Brand | null>(null);
+
+  const [brandNameField, setBrandNameField] = useState<string>("");
+  const [category, setCategory] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+  const [workingHours, setWorkingHours] = useState<string>("");
+
+  const { brands } = useBrandStore();
+
+  useEffect(() => {
+    if (brandName) {
+      const tempBrand = brands.find((brand) => brand.brandname === brandName);
+      if (tempBrand) {
+        setBrands(tempBrand);
+        setBrandNameField(tempBrand.brandname);
+        setCategory(tempBrand.category);
+        setUploadedUrl(tempBrand.logoimage);
+        setWhatsAppNumber(tempBrand.brandwhatsappno);
+        setDescription(tempBrand.description);
+        setWorkingHours(tempBrand.workinghours);
+      }
+    }
+  }, [brandName, brands]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -31,6 +65,7 @@ export default function BrandForm() {
       const url = await uploadToCloudinary(file);
       if (url) {
         setUploadedUrl(url);
+        console.log("Uploaded URL:", url);
       } else {
         setError("Failed to upload image. Please try again.");
       }
@@ -49,6 +84,7 @@ export default function BrandForm() {
       const url = await uploadToCloudinary(file); // Use the reusable function
       if (url) {
         setUploadedUrl(url);
+        console.log("Uploaded URL:", url);
       } else {
         setError("Failed to upload image. Please try again.");
       }
@@ -75,17 +111,33 @@ export default function BrandForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setReqLoading(true);
     const formData = new FormData(e.target as HTMLFormElement);
-    const data = {
-      brandName: formData.get("brandName"),
-      category: formData.get("category"),
-      logoImage: uploadedUrl,
-      brandWhatsAppNo: formData.get("brandWhatsAppNo"),
-      description: formData.get("description"),
-      workingHours: formData.get("workingHours"),
-      createdBy: new Date().toISOString(),
-    };
-    console.log(data);
+    formData.set("logoImage", uploadedUrl || "");
+    formData.set("createdBy", id);
+
+    if (brand) {
+      formData.set("id", brand.brandid);
+    }
+
+    try {
+      let response;
+      if (brand) {
+        response = await axiosInstance.put(`/brand/edit`, formData);
+      } else {
+        response = await axiosInstance.post("/brand/create", formData);
+        console.log(formData)
+      }
+
+      if (response.status === 200 || response.status === 201) {
+        alert(`Brand ${brand ? "updated" : "created"} successfully`);
+      } 
+    } catch (error: any) {
+      console.error("error:", error.response?.data || error.message);
+      alert(error);
+    } finally {
+      setReqLoading(false);
+    }
   };
 
   return (
@@ -94,18 +146,30 @@ export default function BrandForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="brandName">Brand Name</Label>
-            <Input id="brandName" name="brandName" placeholder="Brand Name" required />
+            <Input
+              id="brandName"
+              name="brandName"
+              placeholder="Brand Name"
+              required
+              value={brandNameField}
+              onChange={(e) => setBrandNameField(e.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
-            <Select name="category" required>
+            <Select
+              name="category"
+              required
+              value={category}
+              onValueChange={(value) => setCategory(value)}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Select category" />
+                <SelectValue placeholder="Select category">{category}</SelectValue>
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="food">Food</SelectItem>
-                <SelectItem value="retail">Retail</SelectItem>
+                <SelectItem value="Food">Food</SelectItem>
+                <SelectItem value="Retail">Retail</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -176,7 +240,14 @@ export default function BrandForm() {
 
           <div className="space-y-2">
             <Label htmlFor="description">Description</Label>
-            <Textarea id="description" placeholder="placeholder" name="description" required />
+            <Textarea
+              id="description"
+              placeholder="placeholder"
+              name="description"
+              required
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
@@ -186,11 +257,13 @@ export default function BrandForm() {
               name="workingHours"
               required
               placeholder="e.g. 9:00 AM - 5:00 PM"
+              value={workingHours}
+              onChange={(e) => setWorkingHours(e.target.value)}
             />
           </div>
 
           <Button type="submit" className="w-full bg-red-500 hover:bg-red-400 text-white">
-            Submit
+            {reqLoading ? (<Spinner />) : "Submit"}
           </Button>
         </form>
       </Card>
