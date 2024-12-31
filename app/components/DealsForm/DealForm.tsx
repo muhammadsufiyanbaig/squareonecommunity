@@ -1,20 +1,25 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Upload, X } from "lucide-react";
+import { CheckIcon, CircleX, Upload, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
-import { Brand, uploadToCloudinary } from "@/lib/index";
+import { Brand, Deal, uploadToCloudinary } from "@/lib/index";
 import { usePathname } from "next/navigation";
 import { useBrandStore } from "@/lib/base";
 import axiosInstance from "@/app/axiosInstanse";
 import Spinner from "../Spinner";
+import { useToast } from "@/hooks/use-toast";
 
-export default function DealForm() {
+interface DealFormProps {
+  dealname?: string;
+}
+
+export default function DealForm({ dealname }: DealFormProps) {
   const [uploadedPictureUrl, setUploadedPictureUrl] = useState<string | null>(
     null
   );
@@ -26,10 +31,18 @@ export default function DealForm() {
   const [pictureError, setPictureError] = useState<string | null>(null);
   const [bannerError, setBannerError] = useState<string | null>(null);
   const [tempBrand, setTempBrand] = useState<Brand | null>(null);
+  const [deal, setDeal] = useState<Deal | null>(null);
   const [reqLoading, setReqLoading] = useState<boolean>(false);
   const { brands } = useBrandStore();
   const pathname = usePathname();
-  const brandName = pathname.split("/")[3];
+  const brandName = dealname ? pathname.split("/")[2] : pathname.split("/")[3];
+
+  const [title, setTitle] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
+  const [tagline, setTagline] = useState<string>("");
+  const [startDate, setStartDate] = useState<string>("");
+  const [endDate, setEndDate] = useState<string>("");
+  const { toast } = useToast();
 
   useEffect(() => {
     if (brandName) {
@@ -42,6 +55,24 @@ export default function DealForm() {
     }
   }, [brandName, brands]);
 
+  useEffect(() => {
+    if (dealname && tempBrand) {
+      const foundDeal = tempBrand?.deals.find(
+        (deal) => deal.title === dealname
+      );
+      console.log(foundDeal);
+      if (foundDeal) {
+        setDeal(foundDeal);
+        setTitle(foundDeal.title);
+        setDescription(foundDeal.description);
+        setTagline(foundDeal.tagline);
+        setStartDate(foundDeal.startDate);
+        setEndDate(foundDeal.endDate);
+        setUploadedPictureUrl(foundDeal.Picture);
+        setUploadedBannerUrl(foundDeal.Banner);
+      }
+    }
+  }, [dealname, tempBrand]);
 
   const handleFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -96,8 +127,9 @@ export default function DealForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setReqLoading(true);
     const formData = new FormData(e.target as HTMLFormElement);
-    const data = {
+    const data: any = {
       brandId: tempBrand?.brandid,
       title: formData.get("title"),
       description: formData.get("description"),
@@ -106,18 +138,55 @@ export default function DealForm() {
       endDate: formData.get("endDate"),
       picture: uploadedPictureUrl,
       banner: uploadedBannerUrl,
-      createdBy: new Date().toISOString(),
+      createdAt: new Date().toISOString(),
     };
 
     try {
-      let response = await axiosInstance.post("/deal/create", data);
+      let response;
+      if (deal) {
+        data.id = deal.dealid;
+        data.brandId = tempBrand?.brandid;
+        console.log(data);
+        response = await axiosInstance.put("/deal/edit", data);
+      } else {
+        console.log(data);
+        response = await axiosInstance.post("/deal/create", data);
+      }
 
       if (response.status === 200 || response.status === 201) {
-        alert(`Deal ${tempBrand} "created" successfully`);
+        toast({
+          title: deal ? "Updated" : "Created",
+          description: (
+            <div className="flex items-center">
+              <span className="text-green-500 border border-green-500 rounded-full p-1 mr-2">
+                <CheckIcon className="h-4 w-4" />
+              </span>
+              <span className="first-letter:capitalize">
+                Deal {deal ? "updated" : "created"} successfully
+              </span>
+            </div>
+          ),
+        });
+        // Clear form fields and images
+        setTitle("");
+        setDescription("");
+        setTagline("");
+        setStartDate("");
+        setEndDate("");
+        setUploadedPictureUrl(null);
+        setUploadedBannerUrl(null);
       }
     } catch (error: any) {
       console.error("error:", error.response?.data || error.message);
-      alert(error);
+      toast({
+        title: "Somthing went wrong",
+        description: (
+          <div className="flex items-center">
+            <CircleX className="h-4 w-4 text-red-500 mr-2" />
+            <span className="first-letter:capitalize">{error}</span>
+          </div>
+        ),
+      });
     } finally {
       setReqLoading(false);
     }
@@ -129,7 +198,14 @@ export default function DealForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
-            <Input id="title" name="title" placeholder="Deal Title" required />
+            <Input
+              id="title"
+              name="title"
+              placeholder="Deal Title"
+              required
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
@@ -139,22 +215,45 @@ export default function DealForm() {
               name="description"
               placeholder="Deal Description"
               required
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="tagline">Tagline</Label>
-            <Input id="tagline" name="tagline" placeholder="Tagline" required />
+            <Input
+              id="tagline"
+              name="tagline"
+              placeholder="Tagline"
+              required
+              value={tagline}
+              onChange={(e) => setTagline(e.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="startDate">Start Date</Label>
-            <Input id="startDate" name="startDate" type="date" required />
+            <Input
+              id="startDate"
+              name="startDate"
+              type="date"
+              required
+              value={startDate.split("T")[0]}
+              onChange={(e) => setStartDate(e.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="endDate">End Date</Label>
-            <Input id="endDate" name="endDate" type="date" required />
+            <Input
+              id="endDate"
+              name="endDate"
+              type="date"
+              required
+              value={endDate.split("T")[0]}
+              onChange={(e) => setEndDate(e.target.value)}
+            />
           </div>
 
           <div className="space-y-2">

@@ -67,7 +67,8 @@ export default function AuthPage() {
       const response = await axiosInstance.post("/admin/auth/signup", formData);
       if (response.status === 200 || response.status === 201) {
         toast({
-          title: (
+          title: "Admin created successfully",
+          description: (
             <div className="flex items-center">
               <span className="text-green-500 border border-green-500 rounded-full p-1 mr-2">
                 <CheckIcon className="h-4 w-4" />
@@ -85,11 +86,12 @@ export default function AuthPage() {
         error.response?.data?.message || "An error occurred during signup";
       setErrorMsg(errorMsg);
       toast({
-        title: (
+        title: "Somthing went wrong",
+        description: (
           <div className="flex items-center">
-              <CircleX className="h-4 w-4 text-red-500 mr-2" />
+            <CircleX className="h-4 w-4 text-red-500 mr-2" />
             <span className="first-letter:capitalize">
-            {errorMsg}
+              {errorMsg}
             </span>
           </div>
         ),

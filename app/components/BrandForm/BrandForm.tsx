@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Upload, X } from "lucide-react"; // Import the X icon
+import { CheckIcon, CircleX, Upload, X } from "lucide-react"; // Import the X icon
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -15,17 +15,20 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
-import { Brand, uploadToCloudinary } from "@/lib/index"; 
+import { Brand, uploadToCloudinary } from "@/lib/index";
 import axiosInstance from "@/app/axiosInstanse";
 import useAuthStore, { useBrandStore } from "@/lib/base";
 import { usePathname } from "next/navigation";
 import Spinner from "../Spinner";
+import { useToast } from "@/hooks/use-toast";
 
 interface BrandFormProps {
   brandName?: string;
 }
 
-export default function BrandForm({ brandName: initialBrandName }: BrandFormProps) {
+export default function BrandForm({
+  brandName: initialBrandName,
+}: BrandFormProps) {
   const [whatsAppNumber, setWhatsAppNumber] = useState<string>("+92-");
   const [uploadedUrl, setUploadedUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
@@ -41,6 +44,8 @@ export default function BrandForm({ brandName: initialBrandName }: BrandFormProp
   const [workingHours, setWorkingHours] = useState<string>("");
 
   const { brands } = useBrandStore();
+
+  const { toast } = useToast();
 
   useEffect(() => {
     if (brandName) {
@@ -126,15 +131,42 @@ export default function BrandForm({ brandName: initialBrandName }: BrandFormProp
         response = await axiosInstance.put(`/brand/edit`, formData);
       } else {
         response = await axiosInstance.post("/brand/create", formData);
-        console.log(formData)
+        console.log(formData);
       }
 
       if (response.status === 200 || response.status === 201) {
-        alert(`Brand ${brand ? "updated" : "created"} successfully`);
-      } 
+        toast({
+          title: brand ? "Updated" : "Created",
+          description: (
+            <div className="flex items-center">
+              <span className="text-green-500 border border-green-500 rounded-full p-1 mr-2">
+                <CheckIcon className="h-4 w-4" />
+              </span>
+              <span className="first-letter:capitalize">
+                Brand {brand ? "updated" : "created"} successfully
+              </span>
+            </div>
+          ),
+        });
+        // Clear form fields and images
+        setBrandNameField("");
+        setCategory("");
+        setUploadedUrl(null);
+        setWhatsAppNumber("+92-");
+        setDescription("");
+        setWorkingHours("");
+      }
     } catch (error: any) {
       console.error("error:", error.response?.data || error.message);
-      alert(error);
+      toast({
+        title: "Somthing went wrong",
+        description: (
+          <div className="flex items-center">
+            <CircleX className="h-4 w-4 text-red-500 mr-2" />
+            <span className="first-letter:capitalize">{error}</span>
+          </div>
+        ),
+      });
     } finally {
       setReqLoading(false);
     }
@@ -165,7 +197,9 @@ export default function BrandForm({ brandName: initialBrandName }: BrandFormProp
               onValueChange={(value) => setCategory(value)}
             >
               <SelectTrigger>
-                <SelectValue placeholder="Select category">{category}</SelectValue>
+                <SelectValue placeholder="Select category">
+                  {category}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Food">Food</SelectItem>
@@ -262,8 +296,11 @@ export default function BrandForm({ brandName: initialBrandName }: BrandFormProp
             />
           </div>
 
-          <Button type="submit" className="w-full bg-red-500 hover:bg-red-400 text-white">
-            {reqLoading ? (<Spinner />) : "Submit"}
+          <Button
+            type="submit"
+            className="w-full bg-red-500 hover:bg-red-400 text-white"
+          >
+            {reqLoading ? <Spinner /> : "Submit"}
           </Button>
         </form>
       </Card>

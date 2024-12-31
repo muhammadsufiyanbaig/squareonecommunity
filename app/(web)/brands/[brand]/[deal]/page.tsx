@@ -17,19 +17,81 @@ import { Pencil } from "lucide-react";
 import { useBrandStore } from "@/lib/base";
 import { usePathname } from "next/navigation";
 
-const Page =  ({ params }: { params: { deal: string } }) => {
-  const [dealTitle, setDealTitle] = useState<string>(params.deal);
+const Page =  ({ params }: { params: Promise<{ deal: string }> }) => {
+  const [dealTitle, setDealTitle] = useState<string>("");
   const [foundedDeal, setFoundedDeal] = useState<Deal | null>(null);
-
   const { brands } = useBrandStore();
   const pathname = usePathname();
   const brandName = pathname.split("/")[2];
+
+
+   useEffect(() => {
+      params.then((unwrappedParams) => {
+        setDealTitle(unwrappedParams.deal);
+      });
+    }, [params]);
+  
+
 
   useEffect(() => {
     const foundDeal = findDeal(brands, decodeURIComponent(brandName), decodeURIComponent(dealTitle)); 
     setFoundedDeal(foundDeal || null);
   }, [brands, brandName, dealTitle]);
   
+  if (!foundedDeal) {
+    return (
+      <div className="p-4 text-theme">
+        <div className="animate-pulse">
+          <div className="h-72 bg-gray-300 dark:bg-zinc-800/80 p-1 rounded-xl mb-4"></div>
+          <div className="h-36 aspect-square bg-gray-200 dark:bg-zinc-700/80 rounded-full mx-auto mb-4 -mt-20"></div>
+          <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px] mx-auto"></div>
+          <div className="flex justify-between">
+            <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px]"></div>
+            <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px]"></div>
+          </div>
+          <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2 w-[150px]"></div>
+          <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2"></div>
+          <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2 w-10/12"></div>
+          <div className="flex justify-between">
+            <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px]"></div>
+            <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px]"></div>
+          </div>
+          <div className="user-table !mt-8 px-4">
+          <div className="h-10 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2 w-[150px]"></div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>User Picture</TableHead>
+                  <TableHead>User Name</TableHead>
+                  <TableHead>Brand What'sApp</TableHead>
+                  <TableHead>Deal Code</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {[...Array(3)].map((_, i) => (
+                  <TableRow key={i}>
+                    <TableCell>
+                      <div className="h-12 w-12 bg-gray-300 dark:bg-zinc-800/80 rounded-full"></div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded w-24"></div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded w-24"></div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded w-24"></div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-4 text-theme">
       {foundedDeal ? (
@@ -113,9 +175,9 @@ const Page =  ({ params }: { params: { deal: string } }) => {
               </TableBody>
             </Table>
           </div>
-          {/* <Link href={`${deal}/editDeal`} className="bg-red-500 p-4 rounded-full w-fit text-white hover:bg-red-700 transition-colors duration-150 cursor-pointer flex items-center justify-center fixed bottom-8 right-8">
+          <Link href={`${foundedDeal.title}/editDeal?dealname=${foundedDeal.title}`} className="bg-red-500 p-4 rounded-full w-fit text-white hover:bg-red-700 transition-colors duration-150 cursor-pointer flex items-center justify-center fixed bottom-8 right-8">
           <Pencil />
-      </Link> */}
+      </Link>
         </div>
       ) : (
         <p>Deal not found</p>

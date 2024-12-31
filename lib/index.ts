@@ -8,7 +8,7 @@ export interface code {
   profileImage: string;
 };
 
-export type Deal = {
+export interface Deal {
   Banner: string;
   Picture: string;
   createdAt: string;
@@ -21,7 +21,7 @@ export type Deal = {
   code: code[] | null;
 };
 
-export type Brand = {
+export interface Brand {
   brandid: string;
   brandname: string;
   category: string;
@@ -34,7 +34,7 @@ export type Brand = {
   deals: Deal[];
 };
 
-export type Events = {
+export interface Events {
   title: string;
   description: string;
   background: string;
@@ -55,6 +55,7 @@ export const findDeal = (array: Brand[], brandname: string, dealTitle: string) =
   const deal = brand.deals.find((d) => d.title === dealTitle);
   return deal;
 };
+
 
 export const findEvent = (eventTitle: string) => {
   return events.find((e) => e.title === eventTitle);

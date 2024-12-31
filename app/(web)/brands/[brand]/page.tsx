@@ -41,7 +41,30 @@ const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
           <div className="flex justify-between">
             <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px]"></div>
             <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px]"></div>
-          </div>{" "}
+          </div>
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <div key={index} className="bg-white dark:bg-zinc-900 text-theme border p-2 rounded-xl relative shadow-md animate-pulse">
+            <div className="relative h-48 bg-gray-300 rounded-xl"></div>
+            <div className="flex gap-6 relative">
+              <div className="flex-1">
+                <div className="h-4 bg-gray-300 rounded w-3/4 mt-4"></div>
+              </div>
+            </div>
+            <div className="h-4 bg-gray-300 rounded w-[85%] mx-auto -mt-4"></div>
+            <div className="flex gap-2 justify-between p-4 ">
+              <div className="flex-1">
+                <div className="h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
+                <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+              </div>
+              <div className="flex-1">
+                <div className="h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
+                <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
         </div>
       </div>
     );
@@ -128,7 +151,7 @@ const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
             validDeals.map((deal, index) => (
               <div
                 key={index}
-                className="bg-white dark:bg-zinc-900 dark:border p-2 rounded-xl relative"
+                className="bg-white dark:bg-zinc-900 border p-2 rounded-xl relative"
               >
                 <Link
                   href={`/brands/${brand?.brandname}/${deal.title}`}
