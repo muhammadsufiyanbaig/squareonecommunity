@@ -1,4 +1,4 @@
-"use client"
+"use client";
 
 import { Badge } from "@/components/ui/badge";
 import { Deal, findDeal } from "@/lib";
@@ -15,29 +15,42 @@ import {
 import Link from "next/link";
 import { Pencil } from "lucide-react";
 import { useBrandStore } from "@/lib/base";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
+import NotFound from "@/app/(web)/not-found";
 
-const Page =  ({ params }: { params: Promise<{ deal: string }> }) => {
+const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
   const [dealTitle, setDealTitle] = useState<string>("");
   const [foundedDeal, setFoundedDeal] = useState<Deal | null>(null);
   const { brands } = useBrandStore();
   const pathname = usePathname();
   const brandName = pathname.split("/")[2];
-
-
-   useEffect(() => {
-      params.then((unwrappedParams) => {
-        setDealTitle(unwrappedParams.deal);
-      });
-    }, [params]);
-  
-
+  const router = useRouter();
 
   useEffect(() => {
-    const foundDeal = findDeal(brands, decodeURIComponent(brandName), decodeURIComponent(dealTitle)); 
+    params.then((unwrappedParams) => {
+      setDealTitle(unwrappedParams.deal);
+    });
+  }, [params]);
+
+  useEffect(() => {
+    const foundDeal = findDeal(
+      brands,
+      decodeURIComponent(brandName),
+      decodeURIComponent(dealTitle)
+    );
     setFoundedDeal(foundDeal || null);
   }, [brands, brandName, dealTitle]);
-  
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!foundedDeal) {
+        return <NotFound />;
+      }
+    }, 5000); // 5 seconds delay
+
+    return () => clearTimeout(timer);
+  }, [foundedDeal, router]);
+
   if (!foundedDeal) {
     return (
       <div className="p-4 text-theme">
@@ -57,7 +70,7 @@ const Page =  ({ params }: { params: Promise<{ deal: string }> }) => {
             <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px]"></div>
           </div>
           <div className="user-table !mt-8 px-4">
-          <div className="h-10 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2 w-[150px]"></div>
+            <div className="h-10 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2 w-[150px]"></div>
             <Table>
               <TableHeader>
                 <TableRow>
@@ -98,15 +111,24 @@ const Page =  ({ params }: { params: Promise<{ deal: string }> }) => {
         <div>
           <div className="object-cover h-72 bg-white p-1 rounded-xl relative dark:bg-zinc-800/80">
             <Image
-              src={"/deal.webp"}
+              src={foundedDeal.Banner}
               alt={"brands[0]"}
               height={1000}
               width={1000}
-              className="rounded-xl object-cover h-full w-full"
+              className="rounded-xl object-cover object-center h-full w-full"
             />
             <Badge className="bg-red-500 absolute top-3 right-3 text-white">
               {new Date(foundedDeal.createdAt).toDateString()}
             </Badge>
+          </div>
+          <div className="relative  h-36 rounded-full aspect-square overflow-hidden -mt-20 mx-auto p-1 border dark:bg-zinc-700 bg-white">
+            <Image
+              src={foundedDeal.Picture}
+              alt={foundedDeal.title}
+              width={1000}
+              height={1000}
+              className="border h-full w-auto rounded-full aspect-square  object-cover object-center"
+            />
           </div>
           <div className="flex flex-wrap justify-between mt-2 px-4">
             <div className="space-y-1">
@@ -126,10 +148,11 @@ const Page =  ({ params }: { params: Promise<{ deal: string }> }) => {
             <div className="!mt-4 space-y-4">
               <h2 className="text-2xl font-semibold">Description</h2>
               <p>
-                {foundedDeal.description} Lorem ipsum dolor sit, amet consectetur
-                adipisicing elit. Quaerat optio aliquam, quisquam totam iusto
-                atque magnam reiciendis eveniet. Eius porro architecto ratione
-                iure nemo consequuntur dolorum similique illo tempora doloribus.
+                {foundedDeal.description} Lorem ipsum dolor sit, amet
+                consectetur adipisicing elit. Quaerat optio aliquam, quisquam
+                totam iusto atque magnam reiciendis eveniet. Eius porro
+                architecto ratione iure nemo consequuntur dolorum similique illo
+                tempora doloribus.
               </p>
             </div>
           </div>
@@ -151,16 +174,14 @@ const Page =  ({ params }: { params: Promise<{ deal: string }> }) => {
                     <TableRow key={i}>
                       <TableCell>
                         <Image
-                          src={user.profileImage || "/user-pic-placeholder.jpg"}
+                          src={user.profileImage}
                           alt={user.fullName}
                           width={50}
                           height={50}
-                          className="rounded-full"
+                          className="rounded-full aspect-square object-cover object-center"
                         />
                       </TableCell>
-                      <TableCell className="flex flex-col justify-center">
-                        <span>{user.fullName}</span>
-                      </TableCell>
+                      <TableCell>{user.fullName}</TableCell>
                       <TableCell>{user.whatsAppNo}</TableCell>
                       <TableCell>{user.code}</TableCell>
                     </TableRow>
@@ -175,9 +196,12 @@ const Page =  ({ params }: { params: Promise<{ deal: string }> }) => {
               </TableBody>
             </Table>
           </div>
-          <Link href={`${foundedDeal.title}/editDeal?dealname=${foundedDeal.title}`} className="bg-red-500 p-4 rounded-full w-fit text-white hover:bg-red-700 transition-colors duration-150 cursor-pointer flex items-center justify-center fixed bottom-8 right-8">
-          <Pencil />
-      </Link>
+          <Link
+            href={`${foundedDeal.title}/editDeal?dealname=${foundedDeal.title}`}
+            className="bg-red-500 p-4 rounded-full w-fit text-white hover:bg-red-700 transition-colors duration-150 cursor-pointer flex items-center justify-center fixed bottom-8 right-8"
+          >
+            <Pencil />
+          </Link>
         </div>
       ) : (
         <p>Deal not found</p>

@@ -18,7 +18,7 @@ import Image from "next/image";
 import { Brand, uploadToCloudinary } from "@/lib/index";
 import axiosInstance from "@/app/axiosInstanse";
 import useAuthStore, { useBrandStore } from "@/lib/base";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import Spinner from "../Spinner";
 import { useToast } from "@/hooks/use-toast";
 
@@ -47,17 +47,19 @@ export default function BrandForm({
 
   const { toast } = useToast();
 
+  const router = useRouter();
+
   useEffect(() => {
     if (brandName) {
       const tempBrand = brands.find((brand) => brand.brandname === brandName);
       if (tempBrand) {
         setBrands(tempBrand);
         setBrandNameField(tempBrand.brandname);
-        setCategory(tempBrand.category);
         setUploadedUrl(tempBrand.logoimage);
         setWhatsAppNumber(tempBrand.brandwhatsappno);
         setDescription(tempBrand.description);
         setWorkingHours(tempBrand.workinghours);
+        setCategory(tempBrand.category); 
       }
     }
   }, [brandName, brands]);
@@ -148,6 +150,7 @@ export default function BrandForm({
             </div>
           ),
         });
+        router.push("/brands");
         // Clear form fields and images
         setBrandNameField("");
         setCategory("");
@@ -201,7 +204,7 @@ export default function BrandForm({
                   {category}
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent >
                 <SelectItem value="Food">Food</SelectItem>
                 <SelectItem value="Retail">Retail</SelectItem>
               </SelectContent>

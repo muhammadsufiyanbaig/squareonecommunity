@@ -33,6 +33,7 @@ const useAuthStore = create<AuthState>()(
 interface BrandState {
   brands: Brand[];
   setBrands: (brands: Brand[]) => void;
+  removeDeal: (dealId: string) => void;
 }
 
 const useBrandStore = create<BrandState>()(
@@ -41,6 +42,15 @@ const useBrandStore = create<BrandState>()(
       (set) => ({
         brands: [],
         setBrands: (brands: Brand[]) => set((state) => ({ ...state, brands })),
+        removeDeal: (dealId: string) =>
+          set((state) => ({
+            brands: state.brands.map((brand) => ({
+              ...brand,
+              deals: Array.isArray(brand.deals)
+                ? brand.deals.filter((deal) => deal.dealid !== dealId)
+                : brand.deals,
+            })),
+          })),
       }),
       {
         name: "brand-storage",

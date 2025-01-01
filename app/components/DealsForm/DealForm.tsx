@@ -7,9 +7,9 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
-import Image from "next/image";
+import NextImage from "next/image";
 import { Brand, Deal, uploadToCloudinary } from "@/lib/index";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { useBrandStore } from "@/lib/base";
 import axiosInstance from "@/app/axiosInstanse";
 import Spinner from "../Spinner";
@@ -33,10 +33,10 @@ export default function DealForm({ dealname }: DealFormProps) {
   const [tempBrand, setTempBrand] = useState<Brand | null>(null);
   const [deal, setDeal] = useState<Deal | null>(null);
   const [reqLoading, setReqLoading] = useState<boolean>(false);
-  const { brands } = useBrandStore();
+  const { brands, setBrands } = useBrandStore();
   const pathname = usePathname();
   const brandName = dealname ? pathname.split("/")[2] : pathname.split("/")[3];
-
+  const router = useRouter()
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [tagline, setTagline] = useState<string>("");
@@ -74,16 +74,34 @@ export default function DealForm({ dealname }: DealFormProps) {
     }
   }, [dealname, tempBrand]);
 
+  const checkImageRatio = (file: File, expectedRatio: number): Promise<boolean> => {
+    return new Promise((resolve) => {
+      const img = new Image();
+      img.onload = () => {
+        const ratio = img.width / img.height;
+        resolve(Math.abs(ratio - expectedRatio) < 0.01);
+      };
+      img.src = URL.createObjectURL(file);
+    });
+  };
+
   const handleFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
     setUrl: (url: string | null) => void,
     setLoading: (loading: boolean) => void,
-    setError: (error: string | null) => void
+    setError: (error: string | null) => void,
+    expectedRatio: number
   ) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith("image/")) {
       setLoading(true);
       setError(null);
+      const isValidRatio = await checkImageRatio(file, expectedRatio);
+      if (!isValidRatio) {
+        setError(`Image ratio should be ${expectedRatio === 1 ? "1:1" : "9:16"}.`);
+        setLoading(false);
+        return;
+      }
       const url = await uploadToCloudinary(file);
       if (url) {
         setUrl(url);
@@ -98,7 +116,8 @@ export default function DealForm({ dealname }: DealFormProps) {
     e: React.DragEvent<HTMLDivElement>,
     setUrl: (url: string | null) => void,
     setLoading: (loading: boolean) => void,
-    setError: (error: string | null) => void
+    setError: (error: string | null) => void,
+    expectedRatio: number
   ) => {
     e.preventDefault();
     e.stopPropagation();
@@ -107,6 +126,12 @@ export default function DealForm({ dealname }: DealFormProps) {
     if (file && file.type.startsWith("image/")) {
       setLoading(true);
       setError(null);
+      const isValidRatio = await checkImageRatio(file, expectedRatio);
+      if (!isValidRatio) {
+        setError(`Image ratio should be ${expectedRatio === 1 ? "1:1" : "9:16"}.`);
+        setLoading(false);
+        return;
+      }
       const url = await uploadToCloudinary(file);
       if (url) {
         setUrl(url);
@@ -167,6 +192,22 @@ export default function DealForm({ dealname }: DealFormProps) {
             </div>
           ),
         });
+
+        // Update the brands in useBrandStore
+        const updatedBrands = brands.map((brand) => {
+          if (brand.brandid === tempBrand?.brandid) {
+            const updatedDeals = deal
+              ? brand.deals.map((d) =>
+                  d.dealid === deal.dealid ? { ...d, ...data } : d
+                )
+              : [...brand.deals, { ...data, dealid: response.data.dealid }];
+            return { ...brand, deals: updatedDeals };
+          }
+          return brand;
+        });
+        setBrands(updatedBrands);
+        
+        router.push(`/brands/Testing1/${data.title}`);
         // Clear form fields and images
         setTitle("");
         setDescription("");
@@ -175,6 +216,7 @@ export default function DealForm({ dealname }: DealFormProps) {
         setEndDate("");
         setUploadedPictureUrl(null);
         setUploadedBannerUrl(null);
+
       }
     } catch (error: any) {
       console.error("error:", error.response?.data || error.message);
@@ -264,7 +306,8 @@ export default function DealForm({ dealname }: DealFormProps) {
                   e,
                   setUploadedPictureUrl,
                   setPictureLoading,
-                  setPictureError
+                  setPictureError,
+                  1 // 1:1 ratio for picture
                 )
               }
               onDragOver={(e) => {
@@ -284,7 +327,8 @@ export default function DealForm({ dealname }: DealFormProps) {
                     e,
                     setUploadedPictureUrl,
                     setPictureLoading,
-                    setPictureError
+                    setPictureError,
+                    1 // 1:1 ratio for picture
                   )
                 }
               />
@@ -294,7 +338,7 @@ export default function DealForm({ dealname }: DealFormProps) {
               >
                 {uploadedPictureUrl ? (
                   <div className="relative">
-                    <Image
+                    <NextImage
                       src={uploadedPictureUrl}
                       alt="Uploaded Picture"
                       height={1000}
@@ -338,7 +382,8 @@ export default function DealForm({ dealname }: DealFormProps) {
                   e,
                   setUploadedBannerUrl,
                   setBannerLoading,
-                  setBannerError
+                  setBannerError,
+                  9 / 16 // 9:16 ratio for banner
                 )
               }
               onDragOver={(e) => {
@@ -358,7 +403,8 @@ export default function DealForm({ dealname }: DealFormProps) {
                     e,
                     setUploadedBannerUrl,
                     setBannerLoading,
-                    setBannerError
+                    setBannerError,
+                    9 / 16 // 9:16 ratio for banner
                   )
                 }
               />
@@ -368,7 +414,7 @@ export default function DealForm({ dealname }: DealFormProps) {
               >
                 {uploadedBannerUrl ? (
                   <div className="relative">
-                    <Image
+                    <NextImage
                       src={uploadedBannerUrl}
                       alt="Uploaded Banner"
                       height={1000}

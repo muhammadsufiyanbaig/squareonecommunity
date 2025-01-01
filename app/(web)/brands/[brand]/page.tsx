@@ -4,15 +4,34 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Deal } from "@/lib";
 import { useBrandStore } from "@/lib/base";
-import { Calendar, Clock, Pencil } from "lucide-react";
+import { Calendar, CheckIcon, CircleX, Clock, Pencil } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import React, { useEffect, useState } from "react";
 import { FaWhatsapp } from "react-icons/fa";
+import NotFound from "../../not-found";
+import axiosInstance from "@/app/axiosInstanse";
+import { Trash2 } from "lucide-react";
+import {
+  Dialog,
+  DialogTrigger,
+  DialogContent,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { useToast } from "@/hooks/use-toast";
+import Spinner from "@/app/components/Spinner";
 
 const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
   const [brandName, setBrandName] = useState<string>("");
-
+  const [show404, setShow404] = useState<boolean>(false);
+  const [showDialog, setShowDialog] = useState<boolean>(false);
+  const [dealToDelete, setDealToDelete] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const router = useRouter();
+  const { toast } = useToast();
 
   useEffect(() => {
     params.then((unwrappedParams) => {
@@ -20,16 +39,33 @@ const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
     });
   }, [params]);
 
-  const { brands } = useBrandStore();
+  const { brands, removeDeal } = useBrandStore();
 
-  const brand = brands.find((brand) => brand.brandname === decodeURIComponent(brandName));
+  const brand = brands.find(
+    (brand) => brand.brandname === decodeURIComponent(brandName)
+  );
+
+  useEffect(() => {
+    if (!brand) {
+      const timer = setTimeout(() => {
+        setShow404(true);
+      }, 5000); // 5 seconds
+
+      return () => clearTimeout(timer);
+    }
+  }, [brand]);
+
+  if (show404) {
+    return <NotFound />;
+  }
+
+  console.log(brand?.deals);
 
   if (!brand) {
     return (
       <div className="p-4 text-theme">
         <div className="animate-pulse">
           <div className="h-72 bg-gray-300 dark:bg-zinc-800/80 p-1 rounded-xl mb-4"></div>
-          <div className="h-36 aspect-square bg-gray-200 dark:bg-zinc-700/80 rounded-full mx-auto mb-4 -mt-20"></div>
           <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px] mx-auto"></div>
           <div className="flex justify-between">
             <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px]"></div>
@@ -43,50 +79,101 @@ const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
             <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px]"></div>
           </div>
           <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {Array.from({ length: 3 }).map((_, index) => (
-          <div key={index} className="bg-white dark:bg-zinc-900 text-theme border p-2 rounded-xl relative shadow-md animate-pulse">
-            <div className="relative h-48 bg-gray-300 rounded-xl"></div>
-            <div className="flex gap-6 relative">
-              <div className="flex-1">
-                <div className="h-4 bg-gray-300 rounded w-3/4 mt-4"></div>
+            {Array.from({ length: 3 }).map((_, index) => (
+              <div
+                key={index}
+                className="bg-white dark:bg-zinc-900 text-theme border p-2 rounded-xl relative shadow-md animate-pulse"
+              >
+                <div className="relative h-48 bg-gray-300 rounded-xl"></div>
+                <div className="flex gap-6 relative">
+                  <div className="flex-1">
+                    <div className="h-4 bg-gray-300 rounded w-3/4 mt-4"></div>
+                  </div>
+                </div>
+                <div className="h-4 bg-gray-300 rounded w-[85%] mx-auto -mt-4"></div>
+                <div className="flex gap-2 justify-between p-4 ">
+                  <div className="flex-1">
+                    <div className="h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
+                    <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                  </div>
+                  <div className="flex-1">
+                    <div className="h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
+                    <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="h-4 bg-gray-300 rounded w-[85%] mx-auto -mt-4"></div>
-            <div className="flex gap-2 justify-between p-4 ">
-              <div className="flex-1">
-                <div className="h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
-                <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-              </div>
-              <div className="flex-1">
-                <div className="h-4 bg-gray-300 rounded w-1/2 mb-2"></div>
-                <div className="h-4 bg-gray-300 rounded w-3/4"></div>
-              </div>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
         </div>
       </div>
     );
   }
 
   const normalizedDeals: Deal[] = Array.isArray(brand?.deals)
-  ? brand.deals
-  : brand?.deals
-  ? [brand.deals]
-  : [];
+    ? brand.deals
+    : brand?.deals
+    ? [brand.deals]
+    : [];
 
-  const validDeals = normalizedDeals.filter(deal => 
-    deal.title && deal.tagline && deal.startDate && deal.endDate && deal.createdAt
+  const validDeals = normalizedDeals.filter(
+    (deal) =>
+      deal.title &&
+      deal.tagline &&
+      deal.startDate &&
+      deal.endDate &&
+      deal.createdAt
   );
+
+  const handleDelete = async () => {
+    if (dealToDelete) {
+      setIsDeleting(true);
+      try {
+        const response = await axiosInstance.delete(`/deal/delete`, {
+          data: { id: dealToDelete },
+        });
+        removeDeal(dealToDelete);
+        toast({
+          title: "Success",
+          description: (
+            <div className="flex items-center">
+              <span className="text-green-500 border border-green-500 rounded-full p-1 mr-2">
+                <CheckIcon className="h-4 w-4" />
+              </span>
+              <span className="first-letter:capitalize">
+                Deal delete successfully
+              </span>
+            </div>
+          ),
+        });
+        router.refresh();
+      } catch (error: any) {
+        console.error("Failed to delete deal:", error);
+        toast({
+          title: "Somthing went wrong",
+          description: (
+            <div className="flex items-center">
+              <span className="text-red-500 border border-red-500 rounded-full p-1 mr-2">
+                <CircleX className="h-4 w-4 text-red-500 mr-2" />
+              </span>
+              <span className="first-letter:capitalize">
+                {error.response?.data?.message || "Failed to delete deal"}
+              </span>
+            </div>
+          ),
+        });
+      } finally {
+        setIsDeleting(false);
+        setShowDialog(false);
+        setDealToDelete(null);
+      }
+    }
+  };
 
   return (
     <div className="p-4 text-theme">
       <div className="object-cover h-72 bg-white dark:bg-zinc-800/80 p-1 rounded-xl relative">
         <Image
-          src={
-            "https://res.cloudinary.com/dvabwft9d/image/upload/v1735544512/3_j253di.jpg"
-          }
+          src={brand!.logoimage}
           alt={brand!.brandname}
           height={1000}
           width={1000}
@@ -97,17 +184,6 @@ const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
         </Badge>
       </div>
       <div>
-        <div className="relative h-36 aspect-square mx-auto">
-          <div className="aspect-square rounded-full h-full border absolute -top-1/2 left-3">
-            <Image
-              src={brand!.logoimage}
-              alt={brand!.brandname}
-              width={1000}
-              height={1000}
-              className="rounded-full object-cover h-full w-full"
-            />
-          </div>
-        </div>
         <p className="font-semibold text-lg lg:text-3xl text-center -mt-16 pl-6 flex justify-center items-center gap-8">
           {brand!.brandname}
         </p>
@@ -126,9 +202,7 @@ const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
         </div>
         <div className="mt-4 space-y-4">
           <h2 className="text-2xl font-semibold">Description</h2>
-          <p>
-            {brand!.description}
-          </p>
+          <p>{brand!.description}</p>
         </div>
         <Link
           href={`${brand?.brandname}/edit?brandname=${brand?.brandname}`}
@@ -158,29 +232,31 @@ const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
                   className="absolute inset-0 z-20"
                 />
                 <div className="relative">
-                  {/* <Image
-                    src={deal.Picture || brand?.logoimage}
-                    alt={deal.title}
-                    width={1000}
-                    height={1000}
-                    className="rounded-xl border h-56 object-cover object-center"
-                  /> */}
                   <Image
-                    src={brand!.logoimage}
+                    src={deal.Picture}
                     alt={deal.title}
                     width={1000}
                     height={1000}
-                    className="rounded-xl border h-56 object-cover object-center"
+                    className="rounded-xl border h-44 object-cover object-center"
                   />
                   <Badge className="bg-red-500 absolute top-3 right-3 text-white">
                     {new Date(deal.createdAt).toDateString()}
                   </Badge>
+                  <span className="absolute z-50 top-2 left-2 bg-zinc-300 rounded-full p-1">
+                    <Trash2
+                      className="text-red-500 cursor-pointer"
+                      onClick={() => {
+                        setDealToDelete(deal.dealid);
+                        setShowDialog(true);
+                      }}
+                    />
+                  </span>
                 </div>
                 <div>
                   <h4 className="font-semibold text-sm lg:text-xl mt-2">
                     {deal.title}
                   </h4>
-                  <p className="text-lg line-clamp-1">{deal.tagline}</p>
+                  <p className="text-base line-clamp-1">{deal.tagline}</p>
                   <div className="flex gap-2 justify-between py-4">
                     <div>
                       <p className="text-xs font-semibold mb-2">Start</p>
@@ -205,6 +281,25 @@ const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
           )}
         </div>
       </div>
+      <Dialog open={showDialog} onOpenChange={setShowDialog}>
+        <DialogContent>
+          <DialogTitle className="dark:text-white">Confirm Delete</DialogTitle>
+          <DialogDescription>
+            Are you sure you want to delete this deal? This action cannot be
+            undone.
+          </DialogDescription>
+          <DialogFooter>
+            <Button onClick={() => setShowDialog(false)}>Cancel</Button>
+            <Button
+              onClick={handleDelete}
+              className="bg-red-500 hover:bg-red-400 text-white"
+              disabled={isDeleting}
+            >
+              {isDeleting ? <Spinner /> : "Delete"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

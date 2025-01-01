@@ -16,7 +16,6 @@ import Link from "next/link";
 import Switch from "./Switch-btn";
 import useAuthStore from "@/lib/base";
 
-
 export function UserNav() {
   const { email, fullname } = useAuthStore();
   return (
@@ -25,7 +24,13 @@ export function UserNav() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8 dark:border border-zinc-700">
-            <AvatarFallback className="text-theme">{fullname.split(" ").map(word => word[0]).join('')}</AvatarFallback>
+            <AvatarFallback className="text-theme">
+              {fullname
+                .split(" ")
+                .slice(0, 2)
+                .map((word) => word[0])
+                .join("")}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
@@ -41,7 +46,7 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem>
-          <Link href={"/profile"}>Profile</Link>
+            <Link href={"/profile"}>Profile</Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

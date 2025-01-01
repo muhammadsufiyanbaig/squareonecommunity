@@ -16,8 +16,8 @@ const Page = () => {
   useEffect(() => {
     const fetchBrandsData = async () => {
       const data = await getBrands();
-      setBrandData(data || []);
       setBrands(data || []);
+      setBrandData(data || []);
       setLoading(false);
     };
 

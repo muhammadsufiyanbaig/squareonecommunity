@@ -1,10 +1,12 @@
 import {
   CalendarDays,
   ChevronDown,
+  Handshake,
   Home,
   Settings,
   SquareChartGantt,
   UserRoundCheck,
+  UserRoundPlus,
   Users,
 } from "lucide-react";
 
@@ -60,13 +62,19 @@ const items = [
   {
     title: "Register Admin",
     url: "/register",
-    icon: UserRoundCheck,
+    icon: UserRoundPlus,
     dropdown: false,
   },
   {
     title: "Admin Profile",
     url: "/profile",
-    icon: Settings,
+    icon: UserRoundCheck,
+    dropdown: false,
+  },
+  {
+    title: "Support",
+    url: "/support",
+    icon: Handshake,
     dropdown: false,
   },
 ];
