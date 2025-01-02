@@ -39,6 +39,7 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
       decodeURIComponent(dealTitle)
     );
     setFoundedDeal(foundDeal || null);
+    console.log(foundedDeal)
   }, [brands, brandName, dealTitle]);
 
   useEffect(() => {
@@ -50,6 +51,7 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
 
     return () => clearTimeout(timer);
   }, [foundedDeal, router]);
+
 
   if (!foundedDeal) {
     return (
@@ -112,7 +114,7 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
           <div className="object-cover h-72 bg-white p-1 rounded-xl relative dark:bg-zinc-800/80">
             <Image
               src={foundedDeal.Banner}
-              alt={"brands[0]"}
+              alt={foundedDeal.title}
               height={1000}
               width={1000}
               className="rounded-xl object-cover object-center h-full w-full"
@@ -121,13 +123,13 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
               {new Date(foundedDeal.createdAt).toDateString()}
             </Badge>
           </div>
-          <div className="relative  h-36 rounded-full aspect-square overflow-hidden -mt-20 mx-auto p-1 border dark:bg-zinc-700 bg-white">
+          <div className="relative h-36 rounded-full aspect-square overflow-hidden -mt-20 mx-auto p-1 border dark:bg-zinc-700 bg-white">
             <Image
               src={foundedDeal.Picture}
               alt={foundedDeal.title}
               width={1000}
               height={1000}
-              className="border h-full w-auto rounded-full aspect-square  object-cover object-center"
+              className="border h-full w-auto rounded-full aspect-square object-cover object-center"
             />
           </div>
           <div className="flex flex-wrap justify-between mt-2 px-4">
@@ -147,13 +149,7 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
             </div>
             <div className="!mt-4 space-y-4">
               <h2 className="text-2xl font-semibold">Description</h2>
-              <p>
-                {foundedDeal.description} Lorem ipsum dolor sit, amet
-                consectetur adipisicing elit. Quaerat optio aliquam, quisquam
-                totam iusto atque magnam reiciendis eveniet. Eius porro
-                architecto ratione iure nemo consequuntur dolorum similique illo
-                tempora doloribus.
-              </p>
+              <p>{foundedDeal.description}</p>
             </div>
           </div>
 

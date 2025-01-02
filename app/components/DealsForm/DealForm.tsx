@@ -33,7 +33,7 @@ export default function DealForm({ dealname }: DealFormProps) {
   const [tempBrand, setTempBrand] = useState<Brand | null>(null);
   const [deal, setDeal] = useState<Deal | null>(null);
   const [reqLoading, setReqLoading] = useState<boolean>(false);
-  const { brands, setBrands } = useBrandStore();
+  const { brands, setBrands, updateDeal, addDeal } = useBrandStore();
   const pathname = usePathname();
   const brandName = dealname ? pathname.split("/")[2] : pathname.split("/")[3];
   const router = useRouter()
@@ -60,7 +60,6 @@ export default function DealForm({ dealname }: DealFormProps) {
       const foundDeal = tempBrand?.deals.find(
         (deal) => deal.title === dealname
       );
-      console.log(foundDeal);
       if (foundDeal) {
         setDeal(foundDeal);
         setTitle(foundDeal.title);
@@ -171,11 +170,10 @@ export default function DealForm({ dealname }: DealFormProps) {
       if (deal) {
         data.id = deal.dealid;
         data.brandId = tempBrand?.brandid;
-        console.log(data);
         response = await axiosInstance.put("/deal/edit", data);
       } else {
-        console.log(data);
         response = await axiosInstance.post("/deal/create", data);
+        data.dealid = response.data.dealid; // Set the dealid for the new deal
       }
 
       if (response.status === 200 || response.status === 201) {
@@ -193,21 +191,14 @@ export default function DealForm({ dealname }: DealFormProps) {
           ),
         });
 
-        // Update the brands in useBrandStore
-        const updatedBrands = brands.map((brand) => {
-          if (brand.brandid === tempBrand?.brandid) {
-            const updatedDeals = deal
-              ? brand.deals.map((d) =>
-                  d.dealid === deal.dealid ? { ...d, ...data } : d
-                )
-              : [...brand.deals, { ...data, dealid: response.data.dealid }];
-            return { ...brand, deals: updatedDeals };
-          }
-          return brand;
-        });
-        setBrands(updatedBrands);
-        
-        router.push(`/brands/Testing1/${data.title}`);
+        // Update the deal in useBrandStore
+        if (deal) {
+          updateDeal(tempBrand!.brandid, { ...data, dealid: data.id, });
+        } else {
+          addDeal(tempBrand!.brandid, { ...data, dealid: data.dealid });
+        }
+
+        router.push(`/brands/${decodeURIComponent(brandName)}/${data.title}`);
         // Clear form fields and images
         setTitle("");
         setDescription("");

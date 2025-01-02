@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import { Brand } from ".";
+import { Brand, Deal } from ".";
 
 interface AuthState {
   id: string;
@@ -34,6 +34,8 @@ interface BrandState {
   brands: Brand[];
   setBrands: (brands: Brand[]) => void;
   removeDeal: (dealId: string) => void;
+  updateDeal: (brandId: string, updatedDeal: Deal) => void;
+  addDeal: (brandId: string, newDeal: Deal) => void;
 }
 
 const useBrandStore = create<BrandState>()(
@@ -50,6 +52,32 @@ const useBrandStore = create<BrandState>()(
                 ? brand.deals.filter((deal) => deal.dealid !== dealId)
                 : brand.deals,
             })),
+          })),
+        updateDeal: (brandId: string, updatedDeal: Deal) =>
+          set((state) => ({
+            brands: state.brands.map((brand) => {
+              if (brand.brandid === brandId) {
+                const updatedDeals = Array.isArray(brand.deals)
+                  ? brand.deals.map((deal) =>
+                      deal.dealid === updatedDeal.dealid ? updatedDeal : deal
+                    )
+                  : brand.deals;
+                return { ...brand, deals: updatedDeals };
+              }
+              return brand;
+            }),
+          })),
+        addDeal: (brandId: string, newDeal: Deal) =>
+          set((state) => ({
+            brands: state.brands.map((brand) => {
+              if (brand.brandid === brandId) {
+                const updatedDeals = Array.isArray(brand.deals)
+                  ? [...brand.deals, newDeal]
+                  : [newDeal];
+                return { ...brand, deals: updatedDeals };
+              }
+              return brand;
+            }),
           })),
       }),
       {
