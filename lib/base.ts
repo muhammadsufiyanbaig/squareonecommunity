@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import { Brand, Deal } from ".";
+import { Brand, Deal, Ad } from ".";
 
 interface AuthState {
   id: string;
@@ -87,5 +87,24 @@ const useBrandStore = create<BrandState>()(
   )
 );
 
+interface AdState {
+  ads: Ad[];
+  setAds: (ads: Ad[]) => void;
+}
+
+const useAdStore = create<AdState>()(
+  devtools(
+    persist(
+      (set) => ({
+        ads: [],
+        setAds: (ads: Ad[]) => set((state) => ({ ...state, ads })),
+      }),
+      {
+        name: "ad-storage",
+      }
+    )
+  )
+);
+
 export default useAuthStore;
-export { useBrandStore };
+export { useBrandStore, useAdStore };

@@ -2,10 +2,10 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 export function middleware(request: NextRequest) {
-  const email = request.cookies.get("email")?.value; 
+  const token = request.cookies.get("token")?.value; 
   const url = request.nextUrl.clone();
 
-  if (!email && url.pathname.startsWith("/")) {
+  if (!token) {
     url.pathname = "/auth";
     return NextResponse.redirect(url);
   }
@@ -14,5 +14,14 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/web/:path*"],
+  matcher: [
+    "//:path*",
+    "/brands/:path*",
+    "/profile/:path*",
+    "/register/:path*",
+    "/support/:path*",
+    "/users/:path*",
+    "/events/:path*",
+    "/ads/:path*"
+  ],
 };

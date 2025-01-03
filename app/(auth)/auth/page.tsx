@@ -7,8 +7,9 @@ import Image from "next/image";
 import { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import axiosInstance from "@/app/axiosInstanse";
-import { useRouter } from "next/navigation"; // Updated import
-import useAuthStore from "@/lib/base"; // Import the Zustand store
+import { useRouter } from "next/navigation"; 
+import useAuthStore from "@/lib/base"; 
+import Cookies from "js-cookie"; 
 
 export default function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
@@ -50,7 +51,7 @@ export default function LoginForm() {
         setStoreId(id);
         setStoreEmail(email);
         setStoreFullname(fullname);
-        // console.log(response.data);
+        Cookies.set("token", response.data.token, { expires: 3 });
         router.push("/");
       }
     } catch (error: any) {

@@ -21,6 +21,13 @@ export interface Deal {
   code: code[] | null;
 };
 
+export interface WorkingHours {
+  day: string;
+  start: string;
+  end: string;
+  closes: boolean;
+}
+
 export interface Brand {
   brandid: string;
   brandname: string;
@@ -30,7 +37,7 @@ export interface Brand {
   createdat: string;
   brandwhatsappno: string;
   description: string;
-  workinghours: string;
+  workinghours: WorkingHours[];
   deals: Deal[];
 };
 
@@ -46,6 +53,16 @@ export interface Events {
   };
   activities: string[]; 
 };
+
+export interface Ad {
+  id: string;
+  banner: string;
+  brandid: string;
+  createdby: string;
+  dealid: string;
+  startat: string;
+  endat: string;
+}
 
 export let brands: Brand[] = [];
 

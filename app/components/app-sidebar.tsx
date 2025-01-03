@@ -1,4 +1,5 @@
 import {
+  BetweenHorizontalStart,
   CalendarDays,
   ChevronDown,
   Handshake,
@@ -57,6 +58,12 @@ const items = [
     title: "Events",
     url: "/events",
     icon: CalendarDays,
+    dropdown: false,
+  },
+  {
+    title: "Ads",
+    url: "/ads",
+    icon: BetweenHorizontalStart,
     dropdown: false,
   },
   {

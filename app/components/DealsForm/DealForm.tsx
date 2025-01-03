@@ -14,6 +14,13 @@ import { useBrandStore } from "@/lib/base";
 import axiosInstance from "@/app/axiosInstanse";
 import Spinner from "../Spinner";
 import { useToast } from "@/hooks/use-toast";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 interface DealFormProps {
   dealname?: string;
@@ -36,13 +43,15 @@ export default function DealForm({ dealname }: DealFormProps) {
   const { brands, setBrands, updateDeal, addDeal } = useBrandStore();
   const pathname = usePathname();
   const brandName = dealname ? pathname.split("/")[2] : pathname.split("/")[3];
-  const router = useRouter()
+  const router = useRouter();
   const [title, setTitle] = useState<string>("");
   const [description, setDescription] = useState<string>("");
   const [tagline, setTagline] = useState<string>("");
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const { toast } = useToast();
+  const [type, setType] = useState<string>("Deal");
+  const [discount, setDiscount] = useState<number | null>(null);
 
   useEffect(() => {
     if (brandName) {
@@ -73,7 +82,10 @@ export default function DealForm({ dealname }: DealFormProps) {
     }
   }, [dealname, tempBrand]);
 
-  const checkImageRatio = (file: File, expectedRatio: number): Promise<boolean> => {
+  const checkImageRatio = (
+    file: File,
+    expectedRatio: number
+  ): Promise<boolean> => {
     return new Promise((resolve) => {
       const img = new Image();
       img.onload = () => {
@@ -97,7 +109,9 @@ export default function DealForm({ dealname }: DealFormProps) {
       setError(null);
       const isValidRatio = await checkImageRatio(file, expectedRatio);
       if (!isValidRatio) {
-        setError(`Image ratio should be ${expectedRatio === 1 ? "1:1" : "9:16"}.`);
+        setError(
+          `Image ratio should be ${expectedRatio === 1 ? "1:1" : "9:16"}.`
+        );
         setLoading(false);
         return;
       }
@@ -127,7 +141,9 @@ export default function DealForm({ dealname }: DealFormProps) {
       setError(null);
       const isValidRatio = await checkImageRatio(file, expectedRatio);
       if (!isValidRatio) {
-        setError(`Image ratio should be ${expectedRatio === 1 ? "1:1" : "9:16"}.`);
+        setError(
+          `Image ratio should be ${expectedRatio === 1 ? "1:1" : "9:16"}.`
+        );
         setLoading(false);
         return;
       }
@@ -157,12 +173,14 @@ export default function DealForm({ dealname }: DealFormProps) {
       brandId: tempBrand?.brandid,
       title: formData.get("title"),
       description: formData.get("description"),
-      tagline: formData.get("tagline"),
+      tagline:
+        type === "Deal" ? formData.get("tagline") : formData.get("discount"),
       startDate: formData.get("startDate"),
       endDate: formData.get("endDate"),
-      picture: uploadedPictureUrl,
-      banner: uploadedBannerUrl,
+      Picture: uploadedPictureUrl,
+      Banner: uploadedBannerUrl,
       createdAt: new Date().toISOString(),
+      type,
     };
 
     try {
@@ -193,7 +211,7 @@ export default function DealForm({ dealname }: DealFormProps) {
 
         // Update the deal in useBrandStore
         if (deal) {
-          updateDeal(tempBrand!.brandid, { ...data, dealid: data.id, });
+          updateDeal(tempBrand!.brandid, { ...data, dealid: data.id });
         } else {
           addDeal(tempBrand!.brandid, { ...data, dealid: data.dealid });
         }
@@ -207,7 +225,6 @@ export default function DealForm({ dealname }: DealFormProps) {
         setEndDate("");
         setUploadedPictureUrl(null);
         setUploadedBannerUrl(null);
-
       }
     } catch (error: any) {
       console.error("error:", error.response?.data || error.message);
@@ -229,6 +246,17 @@ export default function DealForm({ dealname }: DealFormProps) {
     <div className="max-w-2xl mx-auto p-6">
       <Card className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="space-y-2">
+            <Select value={type} onValueChange={setType}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Deal">Deal</SelectItem>
+                <SelectItem value="Discount">Discount</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
             <Input
@@ -253,17 +281,38 @@ export default function DealForm({ dealname }: DealFormProps) {
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="tagline">Tagline</Label>
-            <Input
-              id="tagline"
-              name="tagline"
-              placeholder="Tagline"
-              required
-              value={tagline}
-              onChange={(e) => setTagline(e.target.value)}
-            />
-          </div>
+          {type === "Deal" ? (
+            <div className="space-y-2 relative">
+              <Label htmlFor="tagline">Tagline</Label>
+              <Input
+                id="tagline"
+                name="tagline"
+                placeholder="Tagline"
+                required
+                maxLength={25}
+                value={tagline}
+                onChange={(e) => setTagline(e.target.value)}
+              />
+              <p className="absolute bottom-2 right-2 text-sm text-gray-500">
+                {tagline.length}/25
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-2">
+              <Label htmlFor="discount">Discount (%)</Label>
+              <Input
+                 id="tagline"
+                name="tagline"
+                type="number"
+                placeholder="Discount Percentage"
+                required
+                min={1}
+                max={3}
+                value={discount || ""}
+                onChange={(e) => setDiscount(Number(e.target.value.slice(0, 3)))}
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="startDate">Start Date</Label>

@@ -15,7 +15,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Card } from "@/components/ui/card";
 import Image from "next/image";
-import { Brand, uploadToCloudinary } from "@/lib/index";
+import { Brand, uploadToCloudinary, WorkingHours } from "@/lib/index";
 import axiosInstance from "@/app/axiosInstanse";
 import useAuthStore, { useBrandStore } from "@/lib/base";
 import { usePathname, useRouter } from "next/navigation";
@@ -41,7 +41,15 @@ export default function BrandForm({
   const [brandNameField, setBrandNameField] = useState<string>("");
   const [category, setCategory] = useState<string>("");
   const [description, setDescription] = useState<string>("");
-  const [workingHours, setWorkingHours] = useState<string>("");
+  const [workingHours, setWorkingHours] = useState<WorkingHours[]>([
+    { day: "Monday", start: "", end: "", closes: false },
+    { day: "Tuesday", start: "", end: "", closes: false },
+    { day: "Wednesday", start: "", end: "", closes: false },
+    { day: "Thursday", start: "", end: "", closes: false },
+    { day: "Friday", start: "", end: "", closes: false },
+    { day: "Saturday", start: "", end: "", closes: false },
+    { day: "Sunday", start: "", end: "", closes: false },
+  ]);
 
   const { brands } = useBrandStore();
 
@@ -58,8 +66,8 @@ export default function BrandForm({
         setUploadedUrl(tempBrand.logoimage);
         setWhatsAppNumber(tempBrand.brandwhatsappno);
         setDescription(tempBrand.description);
-        setWorkingHours(tempBrand.workinghours);
-        setCategory(tempBrand.category); 
+        setWorkingHours(tempBrand.workinghours || []);
+        setCategory(tempBrand.category);
       }
     }
   }, [brandName, brands]);
@@ -116,12 +124,27 @@ export default function BrandForm({
     setError(null);
   };
 
+  const handleWorkingHoursChange = (
+    index: number,
+    field: "start" | "end" | "closes",
+    value: string | boolean
+  ) => {
+    const newWorkingHours = [...workingHours];
+    if (field === "closes" && value === true) {
+      newWorkingHours[index].start = "";
+      newWorkingHours[index].end = "";
+    }
+    newWorkingHours[index][field] = value;
+    setWorkingHours(newWorkingHours);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setReqLoading(true);
     const formData = new FormData(e.target as HTMLFormElement);
     formData.set("logoImage", uploadedUrl || "");
     formData.set("createdBy", id);
+    formData.set("workingHours", JSON.stringify(workingHours));
 
     if (brand) {
       formData.set("id", brand.brandid);
@@ -133,7 +156,6 @@ export default function BrandForm({
         response = await axiosInstance.put(`/brand/edit`, formData);
       } else {
         response = await axiosInstance.post("/brand/create", formData);
-        console.log(formData);
       }
 
       if (response.status === 200 || response.status === 201) {
@@ -150,14 +172,22 @@ export default function BrandForm({
             </div>
           ),
         });
-        router.push("/brands");
-        // Clear form fields and images
-        setBrandNameField("");
-        setCategory("");
-        setUploadedUrl(null);
-        setWhatsAppNumber("+92-");
-        setDescription("");
-        setWorkingHours("");
+        // router.push("/brands");
+        // // Clear form fields and images
+        // setBrandNameField("");
+        // setCategory("");
+        // setUploadedUrl(null);
+        // setWhatsAppNumber("+92-");
+        // setDescription("");
+        // setWorkingHours([
+        //   { day: "Monday", start: "", end: "", closes: false },
+        //   { day: "Tuesday", start: "", end: "", closes: false },
+        //   { day: "Wednesday", start: "", end: "", closes: false },
+        //   { day: "Thursday", start: "", end: "", closes: false },
+        //   { day: "Friday", start: "", end: "", closes: false },
+        //   { day: "Saturday", start: "", end: "", closes: false },
+        //   { day: "Sunday", start: "", end: "", closes: false },
+        // ]);
       }
     } catch (error: any) {
       console.error("error:", error.response?.data || error.message);
@@ -196,6 +226,7 @@ export default function BrandForm({
             <Select
               name="category"
               required
+              defaultValue={category}
               value={category}
               onValueChange={(value) => setCategory(value)}
             >
@@ -204,7 +235,7 @@ export default function BrandForm({
                   {category}
                 </SelectValue>
               </SelectTrigger>
-              <SelectContent >
+              <SelectContent>
                 <SelectItem value="Food">Food</SelectItem>
                 <SelectItem value="Retail">Retail</SelectItem>
               </SelectContent>
@@ -288,15 +319,49 @@ export default function BrandForm({
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="workingHours">Working Hours</Label>
-            <Input
-              id="workingHours"
-              name="workingHours"
-              required
-              placeholder="e.g. 9:00 AM - 5:00 PM"
-              value={workingHours}
-              onChange={(e) => setWorkingHours(e.target.value)}
-            />
+            <Label>Working Hours</Label>
+            {workingHours.map((day, index) => (
+              <div
+                key={index}
+                className="flex items-center justify-between space-x-2"
+              >
+                <span className="w-20">{day.day}</span>
+                <div className="flex items-center gap-2 flex-col md:flex-row">
+                  <Input
+                    type="time"
+                    value={day.start}
+                    onChange={(e) =>
+                      handleWorkingHoursChange(index, "start", e.target.value)
+                    }
+                    placeholder="Start"
+                    readOnly={day.closes}
+                  />
+                  <Input
+                    type="time"
+                    value={day.end}
+                    onChange={(e) =>
+                      handleWorkingHoursChange(index, "end", e.target.value)
+                    }
+                    placeholder="End"
+                    readOnly={day.closes}
+                  />
+                  <label className="flex items-center space-x-2">
+                    <Input
+                      type="checkbox"
+                      checked={day.closes}
+                      onChange={(e) =>
+                        handleWorkingHoursChange(
+                          index,
+                          "closes",
+                          e.target.checked
+                        )
+                      }
+                    />
+                    <span>Closed</span>
+                  </label>
+                </div>
+              </div>
+            ))}
           </div>
 
           <Button

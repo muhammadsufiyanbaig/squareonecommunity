@@ -39,7 +39,7 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
       decodeURIComponent(dealTitle)
     );
     setFoundedDeal(foundDeal || null);
-    console.log(foundedDeal)
+    console.log(foundedDeal);
   }, [brands, brandName, dealTitle]);
 
   useEffect(() => {
@@ -52,25 +52,24 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
     return () => clearTimeout(timer);
   }, [foundedDeal, router]);
 
-
   if (!foundedDeal) {
     return (
       <div className="p-4 text-theme">
         <div className="animate-pulse">
           <div className="h-72 bg-gray-300 dark:bg-zinc-800/80 p-1 rounded-xl mb-4"></div>
-          <div className="h-36 aspect-square bg-gray-200 dark:bg-zinc-700/80 rounded-full mx-auto mb-4 -mt-20"></div>
-          <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px] mx-auto"></div>
-          <div className="flex justify-between">
-            <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px]"></div>
-            <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px]"></div>
+          <div className="h-36 aspect-square bg-gray-200 dark:bg-zinc-700/80 rounded-full ml-6 mb-4 -mt-14"></div>
+          <div className="pl-44 -mt-20">
+            <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-1 w-[150px]"></div>
+            <div className="h-4 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[250px]"></div>
           </div>
-          <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2 w-[150px]"></div>
+          <div className="flex items-end flex-col">
+            <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[250px]"></div>
+            <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[250px]"></div>
+          </div>
+          <div className="h-10 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2 w-[150px]"></div>
           <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2"></div>
           <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2 w-10/12"></div>
-          <div className="flex justify-between">
-            <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px]"></div>
-            <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px]"></div>
-          </div>
+
           <div className="user-table !mt-8 px-4">
             <div className="h-10 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2 w-[150px]"></div>
             <Table>
@@ -123,7 +122,7 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
               {new Date(foundedDeal.createdAt).toDateString()}
             </Badge>
           </div>
-          <div className="relative h-36 rounded-full aspect-square overflow-hidden -mt-20 mx-auto p-1 border dark:bg-zinc-700 bg-white">
+          <div className="relative h-36 rounded-full aspect-square overflow-hidden -mt-14 ml-6 p-1 border dark:bg-zinc-700 bg-white">
             <Image
               src={foundedDeal.Picture}
               alt={foundedDeal.title}
@@ -132,11 +131,11 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
               className="border h-full w-auto rounded-full aspect-square object-cover object-center"
             />
           </div>
-          <div className="flex flex-wrap justify-between mt-2 px-4">
-            <div className="space-y-1">
-              <h2 className="text-2xl font-semibold">{foundedDeal.title}</h2>
-              <p>{foundedDeal.tagline}</p>
-            </div>
+          <div className="flex flex-col justify-start items-start my-4 pl-44 -mt-16">
+            <h2 className="text-2xl font-semibold">{foundedDeal.title}</h2>
+            <p>{foundedDeal.tagline}</p>
+          </div>
+          <div className="flex flex-wrap justify-end mt-2 px-4">
             <div className="space-y-1">
               <div className="flex items-center gap-2">
                 <strong>Starting From:</strong>
@@ -147,12 +146,14 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
                 <p>{new Date(foundedDeal.endDate).toDateString()}</p>
               </div>
             </div>
-            <div className="!mt-4 space-y-4">
-              <h2 className="text-2xl font-semibold">Description</h2>
-              <p>{foundedDeal.description}</p>
-            </div>
           </div>
 
+          <div className="!mt-4 space-y-4 px-4 pb-10">
+            <h2 className="text-2xl font-semibold">Description</h2>
+            <p>{foundedDeal.description}</p>
+          </div>
+
+          <hr />
           <div className="user-table !mt-8 px-4">
             <h2 className="text-2xl font-semibold mb-4">Customer</h2>
             <Table>
