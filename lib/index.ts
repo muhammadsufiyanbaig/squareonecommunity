@@ -9,6 +9,7 @@ export interface code {
 };
 
 export interface Deal {
+  type: string;
   Banner: string;
   Picture: string;
   createdAt: string;

@@ -57,6 +57,8 @@ export default function BrandForm({
 
   const router = useRouter();
 
+  const [errors, setErrors] = useState<{ [key: string]: string }>({});
+
   useEffect(() => {
     if (brandName) {
       const tempBrand = brands.find((brand) => brand.brandname === brandName);
@@ -72,6 +74,14 @@ export default function BrandForm({
     }
   }, [brandName, brands]);
 
+  const handleInputChange = (
+    setter: React.Dispatch<React.SetStateAction<string>>,
+    field: string
+  ) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setter(e.target.value);
+    setErrors((prev) => ({ ...prev, [field]: "" }));
+  };
+
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && file.type.startsWith("image/")) {
@@ -85,6 +95,7 @@ export default function BrandForm({
         setError("Failed to upload image. Please try again.");
       }
       setLoading(false);
+      setErrors((prev) => ({ ...prev, logoImage: "" }));
     }
   };
 
@@ -104,6 +115,7 @@ export default function BrandForm({
         setError("Failed to upload image. Please try again.");
       }
       setLoading(false);
+      setErrors((prev) => ({ ...prev, logoImage: "" }));
     }
   };
 
@@ -117,6 +129,7 @@ export default function BrandForm({
     if (/^\+92-\d*$/.test(value)) {
       setWhatsAppNumber(value.slice(0, 14));
     }
+    setErrors((prev) => ({ ...prev, whatsAppNumber: "" }));
   };
 
   const handleRemoveImage = () => {
@@ -126,7 +139,7 @@ export default function BrandForm({
 
   const handleWorkingHoursChange = (
     index: number,
-    field: "start" | "end" | "closes",
+    field: keyof WorkingHours,
     value: string | boolean
   ) => {
     const newWorkingHours = [...workingHours];
@@ -134,12 +147,30 @@ export default function BrandForm({
       newWorkingHours[index].start = "";
       newWorkingHours[index].end = "";
     }
-    newWorkingHours[index][field] = value;
+    newWorkingHours[index][field] = value as never;
     setWorkingHours(newWorkingHours);
+  };
+
+  const validateForm = () => {
+    const newErrors: { [key: string]: string } = {};
+    if (!brandNameField) newErrors.brandName = "Brand name is required";
+    if (!category) newErrors.category = "Category is required";
+    if (!uploadedUrl) newErrors.logoImage = "Logo image is required";
+    if (!whatsAppNumber || !/^\+92-\d{10}$/.test(whatsAppNumber))
+      newErrors.whatsAppNumber = "Valid WhatsApp number is required";
+    if (!description) newErrors.description = "Description is required";
+    workingHours.forEach((day, index) => {
+      if (!day.closes && (!day.start || !day.end)) {
+        newErrors[`workingHours-${index}`] = "Start and end times are required";
+      }
+    });
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!validateForm()) return;
     setReqLoading(true);
     const formData = new FormData(e.target as HTMLFormElement);
     formData.set("logoImage", uploadedUrl || "");
@@ -172,22 +203,22 @@ export default function BrandForm({
             </div>
           ),
         });
-        // router.push("/brands");
-        // // Clear form fields and images
-        // setBrandNameField("");
-        // setCategory("");
-        // setUploadedUrl(null);
-        // setWhatsAppNumber("+92-");
-        // setDescription("");
-        // setWorkingHours([
-        //   { day: "Monday", start: "", end: "", closes: false },
-        //   { day: "Tuesday", start: "", end: "", closes: false },
-        //   { day: "Wednesday", start: "", end: "", closes: false },
-        //   { day: "Thursday", start: "", end: "", closes: false },
-        //   { day: "Friday", start: "", end: "", closes: false },
-        //   { day: "Saturday", start: "", end: "", closes: false },
-        //   { day: "Sunday", start: "", end: "", closes: false },
-        // ]);
+        router.push("/brands");
+        // Clear form fields and images
+        setBrandNameField("");
+        setCategory("");
+        setUploadedUrl(null);
+        setWhatsAppNumber("+92-");
+        setDescription("");
+        setWorkingHours([
+          { day: "Monday", start: "", end: "", closes: false },
+          { day: "Tuesday", start: "", end: "", closes: false },
+          { day: "Wednesday", start: "", end: "", closes: false },
+          { day: "Thursday", start: "", end: "", closes: false },
+          { day: "Friday", start: "", end: "", closes: false },
+          { day: "Saturday", start: "", end: "", closes: false },
+          { day: "Sunday", start: "", end: "", closes: false },
+        ]);
       }
     } catch (error: any) {
       console.error("error:", error.response?.data || error.message);
@@ -215,22 +246,26 @@ export default function BrandForm({
               id="brandName"
               name="brandName"
               placeholder="Brand Name"
-              required
               value={brandNameField}
-              onChange={(e) => setBrandNameField(e.target.value)}
+              onChange={handleInputChange(setBrandNameField, "brandName")}
+              className={errors.brandName ? "border-red-500" : ""}
             />
+            {errors.brandName && (
+              <p className="text-red-500 text-sm">{errors.brandName}</p>
+            )}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
             <Select
               name="category"
-              required
-              defaultValue={category}
               value={category}
-              onValueChange={(value) => setCategory(value)}
+              onValueChange={(value) => {
+                setCategory(value);
+                setErrors((prev) => ({ ...prev, category: "" }));
+              }}
             >
-              <SelectTrigger>
+              <SelectTrigger className={errors.category ? "border-red-500" : ""}>
                 <SelectValue placeholder="Select category">
                   {category}
                 </SelectValue>
@@ -240,6 +275,9 @@ export default function BrandForm({
                 <SelectItem value="Retail">Retail</SelectItem>
               </SelectContent>
             </Select>
+            {errors.category && (
+              <p className="text-red-500 text-sm">{errors.category}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -247,7 +285,11 @@ export default function BrandForm({
             <div
               onDrop={handleDrop}
               onDragOver={handleDragOver}
-              className="border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors border-gray-300 hover:border-primary"
+              className={`border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors ${
+                errors.logoImage
+                  ? "border-red-500"
+                  : "border-gray-300 hover:border-primary"
+              }`}
             >
               <input
                 type="file"
@@ -292,6 +334,9 @@ export default function BrandForm({
                 )}
               </label>
             </div>
+            {errors.logoImage && (
+              <p className="text-red-500 text-sm">{errors.logoImage}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -299,11 +344,14 @@ export default function BrandForm({
             <Input
               id="brandId"
               name="brandWhatsAppNo"
-              required
               value={whatsAppNumber}
               onChange={handleWhatsAppChange}
               placeholder="+92-xxxxxxxxxx"
+              className={errors.whatsAppNumber ? "border-red-500" : ""}
             />
+            {errors.whatsAppNumber && (
+              <p className="text-red-500 text-sm">{errors.whatsAppNumber}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -312,10 +360,13 @@ export default function BrandForm({
               id="description"
               placeholder="placeholder"
               name="description"
-              required
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={handleInputChange(setDescription, "description")}
+              className={errors.description ? "border-red-500" : ""}
             />
+            {errors.description && (
+              <p className="text-red-500 text-sm">{errors.description}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -326,39 +377,52 @@ export default function BrandForm({
                 className="flex items-center justify-between space-x-2"
               >
                 <span className="w-20">{day.day}</span>
-                <div className="flex items-center gap-2 flex-col md:flex-row">
-                  <Input
-                    type="time"
-                    value={day.start}
-                    onChange={(e) =>
-                      handleWorkingHoursChange(index, "start", e.target.value)
-                    }
-                    placeholder="Start"
-                    readOnly={day.closes}
-                  />
-                  <Input
-                    type="time"
-                    value={day.end}
-                    onChange={(e) =>
-                      handleWorkingHoursChange(index, "end", e.target.value)
-                    }
-                    placeholder="End"
-                    readOnly={day.closes}
-                  />
-                  <label className="flex items-center space-x-2">
+                <div className="flex flex-col">
+                  <div className="flex items-center gap-2 flex-col md:flex-row">
                     <Input
-                      type="checkbox"
-                      checked={day.closes}
+                      type="time"
+                      value={day.start}
                       onChange={(e) =>
-                        handleWorkingHoursChange(
-                          index,
-                          "closes",
-                          e.target.checked
-                        )
+                        handleWorkingHoursChange(index, "start", e.target.value)
+                      }
+                      placeholder="Start"
+                      readOnly={day.closes}
+                      className={
+                        errors[`workingHours-${index}`] ? "border-red-500" : ""
                       }
                     />
-                    <span>Closed</span>
-                  </label>
+                    <Input
+                      type="time"
+                      value={day.end}
+                      onChange={(e) =>
+                        handleWorkingHoursChange(index, "end", e.target.value)
+                      }
+                      placeholder="End"
+                      readOnly={day.closes}
+                      className={
+                        errors[`workingHours-${index}`] ? "border-red-500" : ""
+                      }
+                    />
+                    <label className="flex items-center space-x-2">
+                      <Input
+                        type="checkbox"
+                        checked={day.closes}
+                        onChange={(e) =>
+                          handleWorkingHoursChange(
+                            index,
+                            "closes",
+                            e.target.checked
+                          )
+                        }
+                      />
+                      <span>Closed</span>
+                    </label>
+                  </div>
+                  {errors[`workingHours-${index}`] && (
+                    <p className="text-red-500 text-sm">
+                      {errors[`workingHours-${index}`]}
+                    </p>
+                  )}
                 </div>
               </div>
             ))}

@@ -1,6 +1,7 @@
 "use client";
 
 import axiosInstance from "@/app/axiosInstanse";
+import NoDataFound from "@/app/components/NoDataFound";
 import Spinner from "@/app/components/Spinner";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -122,12 +123,7 @@ const page = () => {
                   <SkeletonCard />
                 </>
               ) : messages.length === 0 ? (
-                <div className="flex flex-col items-center justify-center gap-4 text-gray-500 min-h-[60vh]">
-                  <div>
-                    <GrDocumentMissing className="h-24 w-24" />
-                  </div>
-                  <p>No data found</p>
-                </div>
+                <NoDataFound/>
               ) : filteredMessages.length === 0 ? (
                 <div className="flex flex-col items-center justify-center gap-4 text-gray-500 min-h-[60vh]">
                   <div>

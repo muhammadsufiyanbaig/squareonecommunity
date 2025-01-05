@@ -18,8 +18,12 @@ import useAuthStore, { useBrandStore } from "@/lib/base";
 import { CheckIcon, CircleX, Upload, X } from "lucide-react";
 import NextImage from "next/image";
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 
-const checkImageRatio = (file: File, expectedRatio: number): Promise<boolean> => {
+const checkImageRatio = (
+  file: File,
+  expectedRatio: number
+): Promise<boolean> => {
   return new Promise((resolve) => {
     const img = new Image();
     img.onload = () => {
@@ -43,6 +47,12 @@ const AdForm = () => {
   const [endDate, setEndDate] = useState<string | null>(null);
   const [selectedDeal, setSelectedDeal] = useState<string | null>(null);
   const { toast } = useToast();
+  const [formSubmitted, setFormSubmitted] = useState<boolean>(false);
+  const [brandError, setBrandError] = useState<string | null>(null);
+  const [dealError, setDealError] = useState<string | null>(null);
+  const [startDateError, setStartDateError] = useState<string | null>(null);
+  const [endDateError, setEndDateError] = useState<string | null>(null);
+  const router = useRouter();
 
   useEffect(() => {
     if (selectedBrand) {
@@ -129,6 +139,14 @@ const AdForm = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setReqLoading(true);
+    setFormSubmitted(true);
+
+    // Reset errors
+    setBrandError(null);
+    setDealError(null);
+    setStartDateError(null);
+    setEndDateError(null);
+    setError(null);
 
     const data = {
       banner: uploadedUrl || "",
@@ -139,20 +157,61 @@ const AdForm = () => {
       endAt: endDate,
     };
 
+    // Validation
+    let hasError = false;
+    if (!data.brandId) {
+      setBrandError("Brand is required");
+      hasError = true;
+    }
+    if (!data.dealId) {
+      setDealError("Deal is required");
+      hasError = true;
+    }
+    if (!data.startAt) {
+      setStartDateError("Start date is required");
+      hasError = true;
+    }
+    if (!data.endAt) {
+      setEndDateError("End date is required");
+      hasError = true;
+    }
+    if (!data.banner) {
+      setError("Banner image is required");
+      hasError = true;
+    }
+
+    if (hasError) {
+      setReqLoading(false);
+      return;
+    }
+
     try {
       const response = await axiosInstance.post("/ad/create", data);
       console.log("Response:", response.data);
-      toast({
-        title: "Ad Created",
-        description: (
-          <div className="flex items-center">
-            <span className="text-green-500 border border-green-500 rounded-full p-1 mr-2">
-              <CheckIcon className="h-4 w-4" />
-            </span>
-            <span className="first-letter:capitalize">Ad Created</span>
-          </div>
-        ),
-      });
+      if (response.status === 200 || response.status === 201) {
+        toast({
+          title: "Ad Created",
+          description: (
+            <div className="flex items-center">
+              <span className="text-green-500 border border-green-500 rounded-full p-1 mr-2">
+                <CheckIcon className="h-4 w-4" />
+              </span>
+              <span className="first-letter:capitalize">Ad Created</span>
+            </div>
+          ),
+        });
+
+        // Clear form fields
+        setUploadedUrl(null);
+        setSelectedBrand(null);
+        setDeals([]);
+        setStartDate(null);
+        setEndDate(null);
+        setSelectedDeal(null);
+
+        // Navigate to /ads
+        router.push("/ads");
+      }
     } catch (error: any) {
       console.error("Error:", error);
       toast({
@@ -165,7 +224,6 @@ const AdForm = () => {
         ),
       });
     } finally {
-        
       setReqLoading(false);
     }
   };
@@ -178,7 +236,11 @@ const AdForm = () => {
           <div
             onDrop={handleDrop}
             onDragOver={handleDragOver}
-            className="border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors border-gray-300 hover:border-primary"
+            className={`border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors ${
+              formSubmitted && error
+                ? "border-red-500"
+                : "border-gray-300 hover:border-primary"
+            }`}
           >
             <input
               type="file"
@@ -235,10 +297,13 @@ const AdForm = () => {
               value={selectedBrand || ""}
               onValueChange={(value) => setSelectedBrand(value)}
             >
-              <SelectTrigger>
+              <SelectTrigger
+                className={formSubmitted && brandError ? "border-red-500" : ""}
+              >
                 <SelectValue placeholder="Select brands">
                   {selectedBrand
-                    ? brands.find((brand) => brand.brandid === selectedBrand)?.brandname
+                    ? brands.find((brand) => brand.brandid === selectedBrand)
+                        ?.brandname
                     : "Select brands"}
                 </SelectValue>
               </SelectTrigger>
@@ -261,6 +326,9 @@ const AdForm = () => {
                 ))}
               </SelectContent>
             </Select>
+            {formSubmitted && brandError && (
+              <p className="text-red-500 text-sm">{brandError}</p>
+            )}
           </div>
         </div>
 
@@ -275,37 +343,43 @@ const AdForm = () => {
                 value={selectedDeal || ""}
                 onValueChange={(value) => setSelectedDeal(value)}
               >
-                <SelectTrigger>
+                <SelectTrigger
+                  className={formSubmitted && dealError ? "border-red-500" : ""}
+                >
                   <SelectValue placeholder="Select deal">
                     {selectedDeal
-                      ? deals.find((deal) => deal.dealid === selectedDeal)?.title
+                      ? deals.find((deal) => deal.dealid === selectedDeal)
+                          ?.title
                       : "Select deal"}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  {deals.length > 0 ? (
-                    deals.map((deal) => (
-                      <SelectItem key={deal.dealid} value={deal.dealid}>
-                        <div className="flex items-center gap-2">
-                          <div className="h-8 aspect-square rounded-full overflow-hidden">
-                            <NextImage
-                              src={deal.Picture}
-                              alt={deal.title}
-                              height={1000}
-                              width={1000}
-                              className="mr-2 h-full w-full object-cover object-center"
-                            />
-                          </div>
-                          <span>{deal.title}</span>
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {deals.length > 0 ? (
+                  deals.map((deal) => (
+                    <SelectItem key={deal.dealid} value={deal.dealid}>
+                      <div className="flex items-center gap-2">
+                        <div className="h-8 aspect-square rounded-full overflow-hidden">
+                          <NextImage
+                            src={deal.Picture}
+                            alt={deal.title}
+                            height={1000}
+                            width={1000}
+                            className="mr-2 h-full w-full object-cover object-center"
+                          />
                         </div>
-                      </SelectItem>
-                    ))
-                  ) : (
-                    <SelectItem value="no-deals">No deals available</SelectItem>
-                  )}
-                </SelectContent>
-              </Select>
-            </div>
+                        <span>{deal.title}</span>
+                      </div>
+                    </SelectItem>
+                  ))
+                ) : (
+                  <SelectItem value="no-deals">No deals available</SelectItem>
+                )}
+              </SelectContent>
+            </Select>
+            {formSubmitted && dealError && (
+              <p className="text-red-500 text-sm">{dealError}</p>
+            )}
+          </div>
           </div>
         )}
 
@@ -319,8 +393,13 @@ const AdForm = () => {
                 name="startDate"
                 value={startDate || ""}
                 onChange={(e) => setStartDate(e.target.value)}
-                className="border rounded p-2 w-full"
+                className={`border rounded p-2 w-full ${
+                  formSubmitted && startDateError ? "border-red-500" : ""
+                }`}
               />
+              {formSubmitted && startDateError && (
+                <p className="text-red-500 text-sm">{startDateError}</p>
+              )}
             </div>
           </div>
         )}
@@ -335,14 +414,26 @@ const AdForm = () => {
                 name="endDate"
                 value={endDate || ""}
                 onChange={(e) => setEndDate(e.target.value)}
-                className="border rounded p-2 w-full"
+                className={`border rounded p-2 w-full ${
+                  formSubmitted && endDateError ? "border-red-500" : ""
+                }`}
               />
+              {formSubmitted && endDateError && (
+                <p className="text-red-500 text-sm">{endDateError}</p>
+              )}
             </div>
           </div>
         )}
         <Button
           type="submit"
-          className="w-full bg-red-500 hover:bg-red-400 text-white mt-6"
+          className="w-full bg-red-500 hover:bg-red-400 text-white mt-6 disabled:cursor-not-allowed"
+          disabled={
+            !uploadedUrl ||
+            !selectedBrand ||
+            !selectedDeal ||
+            !startDate ||
+            !endDate
+          }
         >
           {reqLoading ? <Spinner /> : "Submit"}
         </Button>

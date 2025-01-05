@@ -4,7 +4,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Deal } from "@/lib";
 import { useBrandStore } from "@/lib/base";
-import { Calendar, CheckIcon, CircleX, Clock, Pencil } from "lucide-react";
+import { Calendar, CheckIcon, CircleX, Pencil } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -59,26 +59,39 @@ const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
     return <NotFound />;
   }
 
-  console.log(brand?.deals);
+  function formatTime(time: string) {
+    const [hour, minute] = time.split(":").map(Number);
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const formattedHour = hour % 12 || 12;
+    return `${formattedHour}:${minute.toString().padStart(2, "0")} ${ampm}`;
+  }
 
   if (!brand) {
     return (
       <div className="p-4 text-theme">
         <div className="animate-pulse">
-          <div className="h-72 bg-gray-300 dark:bg-zinc-800/80 p-1 rounded-xl mb-4"></div>
+          <div className="object-cover h-72 bg-gray-300 dark:bg-zinc-800/80 p-1 rounded-xl mb-4"></div>
           <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px] mx-auto"></div>
-          <div className="flex justify-between">
-            <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px]"></div>
+          <div className="flex justify-end">
             <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px]"></div>
           </div>
           <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2 w-[150px]"></div>
           <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2"></div>
           <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2 w-10/12"></div>
-          <div className="flex justify-between">
+          <div className="flex flex-col gap-2 mt-6">
+            <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2 w-[150px]"></div>
+            {Array.from({ length: 7 }).map((_, index) => (
+              <div className="flex gap-4" key={index}>
+                <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2 w-[150px]"></div>
+                <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2 w-[150px]"></div>
+              </div>
+            ))}
+          </div>
+          <div className="mt-10 px-4 flex justify-between items-center">
             <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px]"></div>
             <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-4 w-[150px]"></div>
           </div>
-          <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="py-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {Array.from({ length: 3 }).map((_, index) => (
               <div
                 key={index}
@@ -184,20 +197,13 @@ const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
         </Badge>
       </div>
       <div>
-        <p className="font-semibold text-lg lg:text-3xl text-center -mt-16 pl-6 flex justify-center items-center gap-8">
+        <p className="font-semibold text-lg lg:text-3xl text-center mt-4 pl-6 flex justify-center items-center gap-8">
           {brand!.brandname}
         </p>
-        <div className="flex flex-wrap justify-between items-center">
-          <div className="flex items-center gap-2">
+        <div className="flex justify-end">
+          <div className="flex items-center gap-2 mt-3">
             <FaWhatsapp className="h-6 w-6" />
             {brand!.brandwhatsappno}
-          </div>
-          <div className="flex items-center gap-2">
-            <Clock className="h-6 w-6" />
-            <span>
-              {brand!.workinghours.split("to")[0]}{" "}
-              {brand!.workinghours.split("to")[1]}
-            </span>
           </div>
         </div>
         <div className="mt-4 space-y-4">
@@ -210,6 +216,32 @@ const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
         >
           <Pencil />
         </Link>
+      </div>
+      <div className="flex  flex-col gap-2 mt-6">
+        <h2 className="text-2xl font-semibold">Working Hours</h2>
+        <div>
+          {brand.workinghours.map((hours, index) => (
+            <div className="max-w-md" key={index}>
+              {!hours.closes ? (
+                <div key={index} className="grid grid-cols-2 mb-1">
+                  <strong>{hours.day}: </strong>
+                  <p>
+                    <span>
+                      {formatTime(hours.start)} - {formatTime(hours.end)}
+                    </span>
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 mb-1">
+                  <strong>{hours.day}: </strong>
+                  <div>
+                    <span>off</span>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
       </div>
       <div>
         <div className="mt-10 px-4 flex justify-between items-center">
@@ -240,7 +272,7 @@ const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
                     className="rounded-xl border h-44 object-cover object-center"
                   />
                   <Badge className="bg-red-500 absolute top-3 right-3 text-white">
-                    {new Date(deal.createdAt).toDateString()}
+                    {deal.type.charAt(0).toUpperCase() + deal.type.slice(1)}
                   </Badge>
                   <span className="absolute z-50 top-2 left-2 bg-zinc-300 rounded-full p-1">
                     <Trash2

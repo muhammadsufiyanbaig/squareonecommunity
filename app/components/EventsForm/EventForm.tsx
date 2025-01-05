@@ -25,6 +25,19 @@ export default function EventForm() {
   const [activityImages, setActivityImages] = useState<string[] | any>([]);
   const [activityLoading, setActivityLoading] = useState<boolean>(false);
   const [activityError, setActivityError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<{ [key: string]: string | null }>({});
+
+  const validateForm = (data: any) => {
+    const newErrors: { [key: string]: string | null } = {};
+    if (!data.title) newErrors.title = "Title is required.";
+    if (!data.description) newErrors.description = "Description is required.";
+    if (!data.startDate) newErrors.startDate = "Start Date is required.";
+    if (!data.endDate) newErrors.endDate = "End Date is required.";
+    if (!data.background) newErrors.background = "Background image is required.";
+    if (!data.banner) newErrors.banner = "Banner image is required.";
+    if (data.activities.length === 0) newErrors.activities = "At least one activity image is required.";
+    return newErrors;
+  };
 
   const handleFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -43,6 +56,7 @@ export default function EventForm() {
     if (files) {
       setLoading(true);
       setError(null);
+      setErrors((prevErrors) => ({ ...prevErrors, background: null, banner: null, activities: null }));
       const urls: string[] = [];
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -86,6 +100,7 @@ export default function EventForm() {
     if (files) {
       setLoading(true);
       setError(null);
+      setErrors((prevErrors) => ({ ...prevErrors, background: null, banner: null, activities: null }));
       const urls: string[] = [];
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
@@ -128,6 +143,11 @@ export default function EventForm() {
     }
   };
 
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setErrors((prevErrors) => ({ ...prevErrors, [name]: value ? null : prevErrors[name] }));
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const formData = new FormData(e.target as HTMLFormElement);
@@ -140,6 +160,13 @@ export default function EventForm() {
       endDate: formData.get("endDate"),
       activities: activityImages,
     };
+
+    const formErrors = validateForm(data);
+    if (Object.keys(formErrors).length > 0) {
+      setErrors(formErrors);
+      return;
+    }
+
     console.log(data);
   };
 
@@ -149,7 +176,14 @@ export default function EventForm() {
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
-            <Input id="title" name="title" placeholder="Event Title" required />
+            <Input
+              id="title"
+              name="title"
+              placeholder="Event Title"
+              className={errors.title ? "border-red-500" : ""}
+              onChange={handleInputChange}
+            />
+            {errors.title && <p className="text-red-500 text-sm">{errors.title}</p>}
           </div>
 
           <div className="space-y-2">
@@ -158,18 +192,34 @@ export default function EventForm() {
               id="description"
               name="description"
               placeholder="Event Description"
-              required
+              className={errors.description ? "border-red-500" : ""}
+              onChange={handleInputChange}
             />
+            {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="startDate">Start Date</Label>
-            <Input id="startDate" name="startDate" type="date" required />
+            <Input
+              id="startDate"
+              name="startDate"
+              type="date"
+              className={errors.startDate ? "border-red-500" : ""}
+              onChange={handleInputChange}
+            />
+            {errors.startDate && <p className="text-red-500 text-sm">{errors.startDate}</p>}
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="endDate">End Date</Label>
-            <Input id="endDate" name="endDate" type="date" required />
+            <Input
+              id="endDate"
+              name="endDate"
+              type="date"
+              className={errors.endDate ? "border-red-500" : ""}
+              onChange={handleInputChange}
+            />
+            {errors.endDate && <p className="text-red-500 text-sm">{errors.endDate}</p>}
           </div>
 
           <div className="space-y-2">
@@ -187,7 +237,9 @@ export default function EventForm() {
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="border-2 border-dashed rounded-lg p-6 text-center transition-colors border-gray-300 hover:border-primary"
+              className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                errors.background ? "border-red-500" : "border-gray-300 hover:border-primary"
+              }`}
             >
               <input
                 type="file"
@@ -240,6 +292,7 @@ export default function EventForm() {
                   </>
                 )}
               </label>
+              {errors.background && <p className="text-red-500 text-sm">{errors.background}</p>}
             </div>
           </div>
 
@@ -258,7 +311,9 @@ export default function EventForm() {
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors border-gray-300 hover:border-primary"
+              className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+                errors.banner ? "border-red-500" : "border-gray-300 hover:border-primary"
+              }`}
             >
               <input
                 type="file"
@@ -309,6 +364,7 @@ export default function EventForm() {
                   </>
                 )}
               </label>
+              {errors.banner && <p className="text-red-500 text-sm">{errors.banner}</p>}
             </div>
           </div>
 
@@ -328,7 +384,9 @@ export default function EventForm() {
               e.preventDefault();
               e.stopPropagation();
             }}
-            className="border-2 border-dashed rounded-lg p-6 text-center transition-colors border-gray-300 hover:border-primary">
+            className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
+              errors.activities ? "border-red-500" : "border-gray-300 hover:border-primary"
+            }`}>
               <input
                 type="file"
                 accept="image/*"
@@ -386,6 +444,7 @@ export default function EventForm() {
                   </>
                 )}
               </label>
+              {errors.activities && <p className="text-red-500 text-sm">{errors.activities}</p>}
             </div>
           </div>
 

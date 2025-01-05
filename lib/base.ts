@@ -90,6 +90,7 @@ const useBrandStore = create<BrandState>()(
 interface AdState {
   ads: Ad[];
   setAds: (ads: Ad[]) => void;
+  removeAd: (adId: string) => void; // Add this line
 }
 
 const useAdStore = create<AdState>()(
@@ -98,6 +99,10 @@ const useAdStore = create<AdState>()(
       (set) => ({
         ads: [],
         setAds: (ads: Ad[]) => set((state) => ({ ...state, ads })),
+        removeAd: (adId: string) => // Add this method
+          set((state) => ({
+            ads: state.ads.filter((ad) => ad.id !== adId),
+          })),
       }),
       {
         name: "ad-storage",

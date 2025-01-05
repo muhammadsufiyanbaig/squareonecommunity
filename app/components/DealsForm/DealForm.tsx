@@ -50,8 +50,16 @@ export default function DealForm({ dealname }: DealFormProps) {
   const [startDate, setStartDate] = useState<string>("");
   const [endDate, setEndDate] = useState<string>("");
   const { toast } = useToast();
-  const [type, setType] = useState<string>("Deal");
   const [discount, setDiscount] = useState<number | null>(null);
+  
+  const [type, setType] = useState<string>("");
+  const [titleError, setTitleError] = useState<string | null>(null);
+  const [descriptionError, setDescriptionError] = useState<string | null>(null);
+  const [taglineError, setTaglineError] = useState<string | null>(null);
+  const [discountError, setDiscountError] = useState<string | null>(null);
+  const [startDateError, setStartDateError] = useState<string | null>(null);
+  const [endDateError, setEndDateError] = useState<string | null>(null);
+  const [typeError, setTypeError] = useState<string | null>(null);
 
   useEffect(() => {
     if (brandName) {
@@ -70,6 +78,7 @@ export default function DealForm({ dealname }: DealFormProps) {
         (deal) => deal.title === dealname
       );
       if (foundDeal) {
+        setType(foundDeal.type);
         setDeal(foundDeal);
         setTitle(foundDeal.title);
         setDescription(foundDeal.description);
@@ -94,6 +103,14 @@ export default function DealForm({ dealname }: DealFormProps) {
       };
       img.src = URL.createObjectURL(file);
     });
+  };
+
+  const handleInputChange = (
+    setter: React.Dispatch<React.SetStateAction<string>>,
+    setError: React.Dispatch<React.SetStateAction<string | null>>
+  ) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    setter(e.target.value);
+    setError(null);
   };
 
   const handleFileChange = async (
@@ -168,20 +185,75 @@ export default function DealForm({ dealname }: DealFormProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setReqLoading(true);
+
+    // Reset errors
+    setTitleError(null);
+    setDescriptionError(null);
+    setTaglineError(null);
+    setDiscountError(null);
+    setStartDateError(null);
+    setEndDateError(null);
+    setPictureError(null);
+    setBannerError(null);
+    setTypeError(null);
+
     const formData = new FormData(e.target as HTMLFormElement);
     const data: any = {
       brandId: tempBrand?.brandid,
       title: formData.get("title"),
       description: formData.get("description"),
-      tagline:
-        type === "Deal" ? formData.get("tagline") : formData.get("discount"),
+      tagline: formData.get("tagline")?.toString(),
       startDate: formData.get("startDate"),
       endDate: formData.get("endDate"),
       Picture: uploadedPictureUrl,
       Banner: uploadedBannerUrl,
       createdAt: new Date().toISOString(),
-      type,
+      type: type.toLowerCase(),
     };
+
+    // Validation
+    let hasError = false;
+    if (!type) {
+      setTypeError("Type is required");
+      hasError = true;
+    }
+    if (!data.title) {
+      setTitleError("Title is required");
+      hasError = true;
+    }
+    if (!data.description) {
+      setDescriptionError("Description is required");
+      hasError = true;
+    }
+    if (type === "Deal" && !data.tagline) {
+      setTaglineError("Tagline is required");
+      hasError = true;
+    }
+    if (type === "Discount" && (!discount || discount < 1 || discount > 100)) {
+      setDiscountError("Discount must be between 1 and 100");
+      hasError = true;
+    }
+    if (!data.startDate) {
+      setStartDateError("Start date is required");
+      hasError = true;
+    }
+    if (!data.endDate) {
+      setEndDateError("End date is required");
+      hasError = true;
+    }
+    if (!uploadedPictureUrl) {
+      setPictureError("Picture is required");
+      hasError = true;
+    }
+    if (!uploadedBannerUrl) {
+      setBannerError("Banner is required");
+      hasError = true;
+    }
+
+    if (hasError) {
+      setReqLoading(false);
+      return;
+    }
 
     try {
       let response;
@@ -247,8 +319,16 @@ export default function DealForm({ dealname }: DealFormProps) {
       <Card className="p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Select value={type} onValueChange={setType}>
-              <SelectTrigger className="w-[180px]">
+            <Label htmlFor="type">Type</Label>
+            <Select
+              name="type"
+              value={type}
+              onValueChange={(value) => {
+                setType(value);
+                setTypeError(null);
+              }}
+            >
+              <SelectTrigger className={`w-[180px] ${typeError ? "border-red-500" : ""}`}>
                 <SelectValue placeholder="Type" />
               </SelectTrigger>
               <SelectContent>
@@ -256,6 +336,9 @@ export default function DealForm({ dealname }: DealFormProps) {
                 <SelectItem value="Discount">Discount</SelectItem>
               </SelectContent>
             </Select>
+            {typeError && (
+              <p className="text-red-500 text-sm">{typeError}</p>
+            )}
           </div>
           <div className="space-y-2">
             <Label htmlFor="title">Title</Label>
@@ -263,10 +346,11 @@ export default function DealForm({ dealname }: DealFormProps) {
               id="title"
               name="title"
               placeholder="Deal Title"
-              required
               value={title}
-              onChange={(e) => setTitle(e.target.value)}
+              onChange={handleInputChange(setTitle, setTitleError)}
+              className={titleError ? "border-red-500" : ""}
             />
+            {titleError && <p className="text-red-500 text-sm">{titleError}</p>}
           </div>
 
           <div className="space-y-2">
@@ -275,42 +359,54 @@ export default function DealForm({ dealname }: DealFormProps) {
               id="description"
               name="description"
               placeholder="Deal Description"
-              required
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={handleInputChange(setDescription, setDescriptionError)}
+              className={descriptionError ? "border-red-500" : ""}
             />
+            {descriptionError && (
+              <p className="text-red-500 text-sm">{descriptionError}</p>
+            )}
           </div>
 
           {type === "Deal" ? (
             <div className="space-y-2 relative">
-              <Label htmlFor="tagline">Tagline</Label>
+              <Label htmlFor="tagline">Deal Tagline</Label>
               <Input
                 id="tagline"
                 name="tagline"
                 placeholder="Tagline"
-                required
                 maxLength={25}
                 value={tagline}
-                onChange={(e) => setTagline(e.target.value)}
+                onChange={handleInputChange(setTagline, setTaglineError)}
+                className={taglineError ? "border-red-500" : ""}
               />
+              {taglineError && (
+                <p className="text-red-500 text-sm">{taglineError}</p>
+              )}
               <p className="absolute bottom-2 right-2 text-sm text-gray-500">
                 {tagline.length}/25
               </p>
             </div>
           ) : (
             <div className="space-y-2">
-              <Label htmlFor="discount">Discount (%)</Label>
+              <Label htmlFor="discount">Discount (%) Tagline</Label>
               <Input
-                 id="tagline"
+                id="tagline"
                 name="tagline"
                 type="number"
                 placeholder="Discount Percentage"
-                required
                 min={1}
-                max={3}
+                max={100}
                 value={discount || ""}
-                onChange={(e) => setDiscount(Number(e.target.value.slice(0, 3)))}
+                onChange={(e) => {
+                  setDiscount(Number(e.target.value.slice(0, 3)));
+                  setDiscountError(null);
+                }}
+                className={discountError ? "border-red-500" : ""}
               />
+              {discountError && (
+                <p className="text-red-500 text-sm">{discountError}</p>
+              )}
             </div>
           )}
 
@@ -320,10 +416,16 @@ export default function DealForm({ dealname }: DealFormProps) {
               id="startDate"
               name="startDate"
               type="date"
-              required
               value={startDate.split("T")[0]}
-              onChange={(e) => setStartDate(e.target.value)}
+              onChange={(e) => {
+                setStartDate(e.target.value);
+                setStartDateError(null);
+              }}
+              className={startDateError ? "border-red-500" : ""}
             />
+            {startDateError && (
+              <p className="text-red-500 text-sm">{startDateError}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -332,10 +434,16 @@ export default function DealForm({ dealname }: DealFormProps) {
               id="endDate"
               name="endDate"
               type="date"
-              required
               value={endDate.split("T")[0]}
-              onChange={(e) => setEndDate(e.target.value)}
+              onChange={(e) => {
+                setEndDate(e.target.value);
+                setEndDateError(null);
+              }}
+              className={endDateError ? "border-red-500" : ""}
             />
+            {endDateError && (
+              <p className="text-red-500 text-sm">{endDateError}</p>
+            )}
           </div>
 
           <div className="space-y-2">
@@ -354,7 +462,7 @@ export default function DealForm({ dealname }: DealFormProps) {
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors border-gray-300 hover:border-primary"
+              className={`border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors ${pictureError ? "border-red-500" : "border-gray-300 hover:border-primary"}`}
             >
               <input
                 type="file"
@@ -423,14 +531,14 @@ export default function DealForm({ dealname }: DealFormProps) {
                   setUploadedBannerUrl,
                   setBannerLoading,
                   setBannerError,
-                  9 / 16 // 9:16 ratio for banner
+                  9 / 16
                 )
               }
               onDragOver={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
               }}
-              className="border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors border-gray-300 hover:border-primary"
+              className={`border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors ${bannerError ? "border-red-500" : "border-gray-300 hover:border-primary"}`}
             >
               <input
                 type="file"
