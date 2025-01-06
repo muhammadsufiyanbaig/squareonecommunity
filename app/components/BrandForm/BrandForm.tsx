@@ -267,7 +267,7 @@ export default function BrandForm({
             >
               <SelectTrigger className={errors.category ? "border-red-500" : ""}>
                 <SelectValue placeholder="Select category">
-                  {category}
+                  {category || "Select category"}
                 </SelectValue>
               </SelectTrigger>
               <SelectContent>

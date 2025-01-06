@@ -90,19 +90,21 @@ const useBrandStore = create<BrandState>()(
 interface AdState {
   ads: Ad[];
   setAds: (ads: Ad[]) => void;
-  removeAd: (adId: string) => void; // Add this line
+  removeAd: (adId: string) => void;
+  getAdById: (adId: string) => Ad | undefined; 
 }
 
 const useAdStore = create<AdState>()(
   devtools(
     persist(
-      (set) => ({
+      (set, get) => ({
         ads: [],
         setAds: (ads: Ad[]) => set((state) => ({ ...state, ads })),
-        removeAd: (adId: string) => // Add this method
+        removeAd: (adId: string) =>
           set((state) => ({
             ads: state.ads.filter((ad) => ad.id !== adId),
           })),
+        getAdById: (adId: string) => get().ads.find((ad) => ad.id === adId), // Add this method
       }),
       {
         name: "ad-storage",

@@ -110,7 +110,7 @@ export default function AdDetails({ adId }: { adId: string }) {
 
   return (
     <div className="container mx-auto p-4 space-y-6">
-      <Card className="overflow-hidden">
+      <Card className="overflow-hidden border-none shadow-none">
         <CardHeader className="p-0">
           <div className="relative h-72">
             <Image
@@ -190,7 +190,7 @@ export default function AdDetails({ adId }: { adId: string }) {
         </CardContent>
       </Card>
       <Link
-        href={`${adSolo.id}/edit`}
+        href={`${adSolo.id}/edit?id=${adSolo.id}`}
         className="bg-red-500 p-4 rounded-full w-fit text-white hover:bg-red-700 transition-colors duration-150 cursor-pointer flex items-center justify-center fixed bottom-8 right-8 z-50"
       >
         <Pencil />
