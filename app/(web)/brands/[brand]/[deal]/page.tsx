@@ -39,7 +39,6 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
       decodeURIComponent(dealTitle)
     );
     setFoundedDeal(foundDeal || null);
-    console.log(foundedDeal);
   }, [brands, brandName, dealTitle]);
 
   useEffect(() => {

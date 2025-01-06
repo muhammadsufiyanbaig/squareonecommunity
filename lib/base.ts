@@ -57,13 +57,15 @@ const useBrandStore = create<BrandState>()(
           set((state) => ({
             brands: state.brands.map((brand) => {
               if (brand.brandid === brandId) {
+                console.log(updatedDeal)
                 const updatedDeals = Array.isArray(brand.deals)
                   ? brand.deals.map((deal) =>
                       deal.dealid === updatedDeal.dealid ? updatedDeal : deal
                     )
-                  : brand.deals;
+                  : [updatedDeal];
                 return { ...brand, deals: updatedDeals };
               }
+              // console.log(brand);
               return brand;
             }),
           })),

@@ -51,7 +51,7 @@ export default function DealForm({ dealname }: DealFormProps) {
   const [endDate, setEndDate] = useState<string>("");
   const { toast } = useToast();
   const [discount, setDiscount] = useState<number | null>(null);
-  
+  const [discountType, setDiscountType] = useState<string>("Upto"); // Add state for discount type
   const [type, setType] = useState<string>("");
   const [titleError, setTitleError] = useState<string | null>(null);
   const [descriptionError, setDescriptionError] = useState<string | null>(null);
@@ -60,20 +60,24 @@ export default function DealForm({ dealname }: DealFormProps) {
   const [startDateError, setStartDateError] = useState<string | null>(null);
   const [endDateError, setEndDateError] = useState<string | null>(null);
   const [typeError, setTypeError] = useState<string | null>(null);
+  const [fetching, setFetching] = useState<boolean>(false); // Add fetching state
 
   useEffect(() => {
     if (brandName) {
+      setFetching(true); // Set fetching to true
       const brand = brands.find(
         (brand) => brand.brandname === decodeURIComponent(brandName)
       );
       if (brand) {
         setTempBrand(brand);
       }
+      setFetching(false); // Set fetching to false
     }
   }, [brandName, brands]);
 
   useEffect(() => {
     if (dealname && tempBrand) {
+      setFetching(true); // Set fetching to true
       const foundDeal = tempBrand?.deals.find(
         (deal) => deal.title === dealname
       );
@@ -88,6 +92,7 @@ export default function DealForm({ dealname }: DealFormProps) {
         setUploadedPictureUrl(foundDeal.Picture);
         setUploadedBannerUrl(foundDeal.Banner);
       }
+      setFetching(false); // Set fetching to false
     }
   }, [dealname, tempBrand]);
 
@@ -105,13 +110,15 @@ export default function DealForm({ dealname }: DealFormProps) {
     });
   };
 
-  const handleInputChange = (
-    setter: React.Dispatch<React.SetStateAction<string>>,
-    setError: React.Dispatch<React.SetStateAction<string | null>>
-  ) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setter(e.target.value);
-    setError(null);
-  };
+  const handleInputChange =
+    (
+      setter: React.Dispatch<React.SetStateAction<string>>,
+      setError: React.Dispatch<React.SetStateAction<string | null>>
+    ) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setter(e.target.value);
+      setError(null);
+    };
 
   const handleFileChange = async (
     e: React.ChangeEvent<HTMLInputElement>,
@@ -202,7 +209,6 @@ export default function DealForm({ dealname }: DealFormProps) {
       brandId: tempBrand?.brandid,
       title: formData.get("title"),
       description: formData.get("description"),
-      tagline: formData.get("tagline")?.toString(),
       startDate: formData.get("startDate"),
       endDate: formData.get("endDate"),
       Picture: uploadedPictureUrl,
@@ -225,11 +231,11 @@ export default function DealForm({ dealname }: DealFormProps) {
       setDescriptionError("Description is required");
       hasError = true;
     }
-    if (type === "Deal" && !data.tagline) {
+    if (type === "deal" && !tagline) {
       setTaglineError("Tagline is required");
       hasError = true;
     }
-    if (type === "Discount" && (!discount || discount < 1 || discount > 100)) {
+    if (type === "discount" && (!tagline || Number(tagline) < 1 || Number(tagline) > 100)) {
       setDiscountError("Discount must be between 1 and 100");
       hasError = true;
     }
@@ -255,11 +261,17 @@ export default function DealForm({ dealname }: DealFormProps) {
       return;
     }
 
+    // Set the correct tagline based on the type
+    if (type === "deal") {
+      data.tagline = tagline;
+    } else if (type === "discount") {
+      data.tagline = `${discountType} ${tagline}% off`;
+    }
+
     try {
       let response;
       if (deal) {
-        data.id = deal.dealid;
-        data.brandId = tempBrand?.brandid;
+        data.dealid = deal.dealid; 
         response = await axiosInstance.put("/deal/edit", data);
       } else {
         response = await axiosInstance.post("/deal/create", data);
@@ -283,9 +295,9 @@ export default function DealForm({ dealname }: DealFormProps) {
 
         // Update the deal in useBrandStore
         if (deal) {
-          updateDeal(tempBrand!.brandid, { ...data, dealid: data.id });
+          updateDeal(tempBrand!.brandid, { ...data, dealid: deal.dealid });
         } else {
-          addDeal(tempBrand!.brandid, { ...data, dealid: data.dealid });
+          addDeal(tempBrand!.brandid, { ...data, dealid: data });
         }
 
         router.push(`/brands/${decodeURIComponent(brandName)}/${data.title}`);
@@ -293,6 +305,7 @@ export default function DealForm({ dealname }: DealFormProps) {
         setTitle("");
         setDescription("");
         setTagline("");
+        setDiscount(null);
         setStartDate("");
         setEndDate("");
         setUploadedPictureUrl(null);
@@ -316,293 +329,339 @@ export default function DealForm({ dealname }: DealFormProps) {
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <Card className="p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="type">Type</Label>
-            <Select
-              name="type"
-              value={type}
-              onValueChange={(value) => {
-                setType(value);
-                setTypeError(null);
-              }}
-            >
-              <SelectTrigger className={`w-[180px] ${typeError ? "border-red-500" : ""}`}>
-                <SelectValue placeholder="Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Deal">Deal</SelectItem>
-                <SelectItem value="Discount">Discount</SelectItem>
-              </SelectContent>
-            </Select>
-            {typeError && (
-              <p className="text-red-500 text-sm">{typeError}</p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
-              name="title"
-              placeholder="Deal Title"
-              value={title}
-              onChange={handleInputChange(setTitle, setTitleError)}
-              className={titleError ? "border-red-500" : ""}
-            />
-            {titleError && <p className="text-red-500 text-sm">{titleError}</p>}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              name="description"
-              placeholder="Deal Description"
-              value={description}
-              onChange={handleInputChange(setDescription, setDescriptionError)}
-              className={descriptionError ? "border-red-500" : ""}
-            />
-            {descriptionError && (
-              <p className="text-red-500 text-sm">{descriptionError}</p>
-            )}
-          </div>
-
-          {type === "Deal" ? (
-            <div className="space-y-2 relative">
-              <Label htmlFor="tagline">Deal Tagline</Label>
-              <Input
-                id="tagline"
-                name="tagline"
-                placeholder="Tagline"
-                maxLength={25}
-                value={tagline}
-                onChange={handleInputChange(setTagline, setTaglineError)}
-                className={taglineError ? "border-red-500" : ""}
-              />
-              {taglineError && (
-                <p className="text-red-500 text-sm">{taglineError}</p>
-              )}
-              <p className="absolute bottom-2 right-2 text-sm text-gray-500">
-                {tagline.length}/25
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <Label htmlFor="discount">Discount (%) Tagline</Label>
-              <Input
-                id="tagline"
-                name="tagline"
-                type="number"
-                placeholder="Discount Percentage"
-                min={1}
-                max={100}
-                value={discount || ""}
-                onChange={(e) => {
-                  setDiscount(Number(e.target.value.slice(0, 3)));
-                  setDiscountError(null);
-                }}
-                className={discountError ? "border-red-500" : ""}
-              />
-              {discountError && (
-                <p className="text-red-500 text-sm">{discountError}</p>
-              )}
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <Label htmlFor="startDate">Start Date</Label>
-            <Input
-              id="startDate"
-              name="startDate"
-              type="date"
-              value={startDate.split("T")[0]}
-              onChange={(e) => {
-                setStartDate(e.target.value);
-                setStartDateError(null);
-              }}
-              className={startDateError ? "border-red-500" : ""}
-            />
-            {startDateError && (
-              <p className="text-red-500 text-sm">{startDateError}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="endDate">End Date</Label>
-            <Input
-              id="endDate"
-              name="endDate"
-              type="date"
-              value={endDate.split("T")[0]}
-              onChange={(e) => {
-                setEndDate(e.target.value);
-                setEndDateError(null);
-              }}
-              className={endDateError ? "border-red-500" : ""}
-            />
-            {endDateError && (
-              <p className="text-red-500 text-sm">{endDateError}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label>Picture</Label>
-            <div
-              onDrop={(e) =>
-                handleDrop(
-                  e,
-                  setUploadedPictureUrl,
-                  setPictureLoading,
-                  setPictureError,
-                  1 // 1:1 ratio for picture
-                )
-              }
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              className={`border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors ${pictureError ? "border-red-500" : "border-gray-300 hover:border-primary"}`}
-            >
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                id="pictureUpload"
-                name="picture"
-                onChange={(e) =>
-                  handleFileChange(
-                    e,
-                    setUploadedPictureUrl,
-                    setPictureLoading,
-                    setPictureError,
-                    1 // 1:1 ratio for picture
-                  )
-                }
-              />
-              <label
-                htmlFor="pictureUpload"
-                className="flex flex-col items-center justify-center min-h-36"
-              >
-                {uploadedPictureUrl ? (
-                  <div className="relative">
-                    <NextImage
-                      src={uploadedPictureUrl}
-                      alt="Uploaded Picture"
-                      height={1000}
-                      width={1000}
-                      className="h-full w-36 object-cover rounded-lg border"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleRemoveImage(
-                          setUploadedPictureUrl,
-                          setPictureError
-                        )
-                      }
-                      className="absolute top-0 right-0 p-1 bg-white rounded-full"
-                    >
-                      <X className="h-4 w-4 text-red-500" />
-                    </button>
-                  </div>
-                ) : pictureLoading ? (
-                  <p className="text-lg text-gray-500">Uploading...</p>
-                ) : pictureError ? (
-                  <p className="text-sm text-red-500">{pictureError}</p>
-                ) : (
-                  <>
-                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                    <p className="mt-2 text-sm text-gray-600">
-                      Drag & drop your picture here, or click to select
-                    </p>
-                  </>
+      {fetching ? (
+        <div className="flex justify-center items-center h-64">
+          <Spinner /> {/* Add Spinner component for loading */}
+        </div>
+      ) : (
+        (!dealname || deal) && (
+          <Card className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="type">Type</Label>
+                <Select
+                  name="type"
+                  value={type}
+                  onValueChange={(value) => {
+                    setType(value);
+                    setTagline("");
+                    setDiscount(null);
+                  }}
+                >
+                  <SelectTrigger
+                    className={`w-[180px] ${typeError ? "border-red-500" : ""}`}
+                  >
+                    <SelectValue>
+                      {type || (
+                        <span className="text-gray-400">Select a type</span>
+                      )}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="deal">Deal</SelectItem>
+                    <SelectItem value="discount">Discount</SelectItem>
+                  </SelectContent>
+                </Select>
+                {typeError && (
+                  <p className="text-red-500 text-sm">{typeError}</p>
                 )}
-              </label>
-            </div>
-          </div>
-
-          <div className="space-y-2">
-            <Label>Banner</Label>
-            <div
-              onDrop={(e) =>
-                handleDrop(
-                  e,
-                  setUploadedBannerUrl,
-                  setBannerLoading,
-                  setBannerError,
-                  9 / 16
-                )
-              }
-              onDragOver={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-              }}
-              className={`border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors ${bannerError ? "border-red-500" : "border-gray-300 hover:border-primary"}`}
-            >
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                id="bannerUpload"
-                name="banner"
-                onChange={(e) =>
-                  handleFileChange(
-                    e,
-                    setUploadedBannerUrl,
-                    setBannerLoading,
-                    setBannerError,
-                    9 / 16 // 9:16 ratio for banner
-                  )
-                }
-              />
-              <label
-                htmlFor="bannerUpload"
-                className="flex flex-col items-center justify-center min-h-36"
-              >
-                {uploadedBannerUrl ? (
-                  <div className="relative">
-                    <NextImage
-                      src={uploadedBannerUrl}
-                      alt="Uploaded Banner"
-                      height={1000}
-                      width={1000}
-                      className="h-full w-36 object-cover rounded-lg border"
-                    />
-                    <button
-                      type="button"
-                      onClick={() =>
-                        handleRemoveImage(setUploadedBannerUrl, setBannerError)
-                      }
-                      className="absolute top-0 right-0 p-1 bg-white rounded-full"
-                    >
-                      <X className="h-4 w-4 text-red-500" />
-                    </button>
-                  </div>
-                ) : bannerLoading ? (
-                  <p className="text-lg text-gray-500">Uploading...</p>
-                ) : bannerError ? (
-                  <p className="text-sm text-red-500">{bannerError}</p>
-                ) : (
-                  <>
-                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                    <p className="mt-2 text-sm text-gray-600">
-                      Drag & drop your banner here, or click to select
-                    </p>
-                  </>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="title">Title</Label>
+                <Input
+                  id="title"
+                  name="title"
+                  placeholder="Deal Title"
+                  value={title}
+                  onChange={handleInputChange(setTitle, setTitleError)}
+                  className={titleError ? "border-red-500" : ""}
+                />
+                {titleError && (
+                  <p className="text-red-500 text-sm">{titleError}</p>
                 )}
-              </label>
-            </div>
-          </div>
+              </div>
 
-          <Button
-            type="submit"
-            className="w-full bg-red-500 hover:bg-red-400 text-white"
-          >
-            {reqLoading ? <Spinner /> : "Submit"}
-          </Button>
-        </form>
-      </Card>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  name="description"
+                  placeholder="Deal Description"
+                  value={description}
+                  onChange={handleInputChange(
+                    setDescription,
+                    setDescriptionError
+                  )}
+                  className={descriptionError ? "border-red-500" : ""}
+                />
+                {descriptionError && (
+                  <p className="text-red-500 text-sm">{descriptionError}</p>
+                )}
+              </div>
+
+              {type === "deal" ? (
+                <div className="space-y-2 relative">
+                  <Label htmlFor="tagline">Deal Tagline</Label>
+                  <Input
+                    id="tagline"
+                    name="tagline"
+                    placeholder="Tagline"
+                    maxLength={25}
+                    value={tagline}
+                    onChange={handleInputChange(setTagline, setTaglineError)}
+                    className={taglineError ? "border-red-500" : ""}
+                  />
+                  {taglineError && (
+                    <p className="text-red-500 text-sm">{taglineError}</p>
+                  )}
+                  <p className="absolute bottom-2 right-2 text-sm text-gray-500">
+                    {tagline.length}/25
+                  </p>
+                </div>
+              ) : type === "discount" ? (
+                <div className="space-y-2">
+                  <Label htmlFor="discount">Discount (%)</Label>
+                  <div className="flex space-x-2">
+                    <Select
+                      name="discountType"
+                      value={discountType}
+                      onValueChange={(value) => setDiscountType(value)}
+                    >
+                      <SelectTrigger className="w-[100px]">
+                        <SelectValue>{discountType}</SelectValue>
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Upto">Upto</SelectItem>
+                        <SelectItem value="Flat">Flat</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <Input
+                      id="discount"
+                      name="tagline"
+                      type="number"
+                      placeholder="Discount Percentage"
+                      min={1}
+                      max={100}
+                      value={tagline !== null ? tagline : ""}
+                      onChange={(e) => {
+                        setTagline(e.target.value.slice(0, 3));
+                        setDiscountError(null);
+                      }}
+                      className={discountError ? "border-red-500" : ""}
+                    />
+                  </div>
+                  {discountError && (
+                    <p className="text-red-500 text-sm">{discountError}</p>
+                  )}
+                </div>
+              ) : null}
+
+              <div className="space-y-2">
+                <Label htmlFor="startDate">Start Date</Label>
+                <Input
+                  id="startDate"
+                  name="startDate"
+                  type="date"
+                  value={startDate.split("T")[0]}
+                  onChange={(e) => {
+                    setStartDate(e.target.value);
+                    setStartDateError(null);
+                  }}
+                  className={startDateError ? "border-red-500" : ""}
+                />
+                {startDateError && (
+                  <p className="text-red-500 text-sm">{startDateError}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="endDate">End Date</Label>
+                <Input
+                  id="endDate"
+                  name="endDate"
+                  type="date"
+                  value={endDate.split("T")[0]}
+                  onChange={(e) => {
+                    setEndDate(e.target.value);
+                    setEndDateError(null);
+                  }}
+                  className={endDateError ? "border-red-500" : ""}
+                />
+                {endDateError && (
+                  <p className="text-red-500 text-sm">{endDateError}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Picture</Label>
+                <div
+                  onDrop={(e) =>
+                    handleDrop(
+                      e,
+                      setUploadedPictureUrl,
+                      setPictureLoading,
+                      setPictureError,
+                      1 // 1:1 ratio for picture
+                    )
+                  }
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  className={`border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors ${
+                    pictureError
+                      ? "border-red-500"
+                      : "border-gray-300 hover:border-primary"
+                  }`}
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    id="pictureUpload"
+                    name="picture"
+                    onChange={(e) =>
+                      handleFileChange(
+                        e,
+                        setUploadedPictureUrl,
+                        setPictureLoading,
+                        setPictureError,
+                        1 // 1:1 ratio for picture
+                      )
+                    }
+                  />
+                  <label
+                    htmlFor="pictureUpload"
+                    className="flex flex-col items-center justify-center min-h-36"
+                  >
+                    {uploadedPictureUrl ? (
+                      <div className="relative">
+                        <NextImage
+                          src={uploadedPictureUrl}
+                          alt="Uploaded Picture"
+                          height={1000}
+                          width={1000}
+                          className="h-full w-36 object-cover rounded-lg border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleRemoveImage(
+                              setUploadedPictureUrl,
+                              setPictureError
+                            )
+                          }
+                          className="absolute top-0 right-0 p-1 bg-white rounded-full"
+                        >
+                          <X className="h-4 w-4 text-red-500" />
+                        </button>
+                      </div>
+                    ) : pictureLoading ? (
+                      <p className="text-lg text-gray-500">Uploading...</p>
+                    ) : pictureError ? (
+                      <p className="text-sm text-red-500">{pictureError}</p>
+                    ) : (
+                      <>
+                        <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                        <p className="mt-2 text-sm text-gray-600">
+                          Drag & drop your picture here, or click to select
+                        </p>
+                      </>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Banner</Label>
+                <div
+                  onDrop={(e) =>
+                    handleDrop(
+                      e,
+                      setUploadedBannerUrl,
+                      setBannerLoading,
+                      setBannerError,
+                      9 / 16
+                    )
+                  }
+                  onDragOver={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                  className={`border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors ${
+                    bannerError
+                      ? "border-red-500"
+                      : "border-gray-300 hover:border-primary"
+                  }`}
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    id="bannerUpload"
+                    name="banner"
+                    onChange={(e) =>
+                      handleFileChange(
+                        e,
+                        setUploadedBannerUrl,
+                        setBannerLoading,
+                        setBannerError,
+                        9 / 16 // 9:16 ratio for banner
+                      )
+                    }
+                  />
+                  <label
+                    htmlFor="bannerUpload"
+                    className="flex flex-col items-center justify-center min-h-36"
+                  >
+                    {uploadedBannerUrl ? (
+                      <div className="relative">
+                        <NextImage
+                          src={uploadedBannerUrl}
+                          alt="Uploaded Banner"
+                          height={1000}
+                          width={1000}
+                          className="h-full w-36 object-cover rounded-lg border"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleRemoveImage(
+                              setUploadedBannerUrl,
+                              setBannerError
+                            )
+                          }
+                          className="absolute top-0 right-0 p-1 bg-white rounded-full"
+                        >
+                          <X className="h-4 w-4 text-red-500" />
+                        </button>
+                      </div>
+                    ) : bannerLoading ? (
+                      <p className="text-lg text-gray-500">Uploading...</p>
+                    ) : bannerError ? (
+                      <p className="text-sm text-red-500">{bannerError}</p>
+                    ) : (
+                      <>
+                        <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                        <p className="mt-2 text-sm text-gray-600">
+                          Drag & drop your banner here, or click to select
+                        </p>
+                      </>
+                    )}
+                  </label>
+                </div>
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-red-500 hover:bg-red-400 text-white"
+              >
+                {reqLoading ? <Spinner /> : "Submit"}
+              </Button>
+            </form>
+          </Card>
+        )
+      )}
     </div>
   );
 }

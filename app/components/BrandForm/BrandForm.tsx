@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckIcon, CircleX, Upload, X } from "lucide-react"; // Import the X icon
+import { CheckIcon, CircleX, Edit, Upload, X } from "lucide-react"; // Import the X icon
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -37,6 +37,7 @@ export default function BrandForm({
   const { id } = useAuthStore();
   const brandName = initialBrandName || null;
   const [brand, setBrands] = useState<Brand | null>(null);
+  const [fetching, setFetching] = useState<boolean>(false);
 
   const [brandNameField, setBrandNameField] = useState<string>("");
   const [category, setCategory] = useState<string>("");
@@ -61,6 +62,7 @@ export default function BrandForm({
 
   useEffect(() => {
     if (brandName) {
+      setFetching(true);
       const tempBrand = brands.find((brand) => brand.brandname === brandName);
       if (tempBrand) {
         setBrands(tempBrand);
@@ -71,16 +73,16 @@ export default function BrandForm({
         setWorkingHours(tempBrand.workinghours || []);
         setCategory(tempBrand.category);
       }
+      setFetching(false);
     }
   }, [brandName, brands]);
 
-  const handleInputChange = (
-    setter: React.Dispatch<React.SetStateAction<string>>,
-    field: string
-  ) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setter(e.target.value);
-    setErrors((prev) => ({ ...prev, [field]: "" }));
-  };
+  const handleInputChange =
+    (setter: React.Dispatch<React.SetStateAction<string>>, field: string) =>
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      setter(e.target.value);
+      setErrors((prev) => ({ ...prev, [field]: "" }));
+    };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -238,204 +240,220 @@ export default function BrandForm({
 
   return (
     <div className="max-w-2xl mx-auto p-6">
-      <Card className="p-6">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="brandName">Brand Name</Label>
-            <Input
-              id="brandName"
-              name="brandName"
-              placeholder="Brand Name"
-              value={brandNameField}
-              onChange={handleInputChange(setBrandNameField, "brandName")}
-              className={errors.brandName ? "border-red-500" : ""}
-            />
-            {errors.brandName && (
-              <p className="text-red-500 text-sm">{errors.brandName}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
-            <Select
-              name="category"
-              value={category}
-              onValueChange={(value) => {
-                setCategory(value);
-                setErrors((prev) => ({ ...prev, category: "" }));
-              }}
-            >
-              <SelectTrigger className={errors.category ? "border-red-500" : ""}>
-                <SelectValue placeholder="Select category">
-                  {category || "Select category"}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Food">Food</SelectItem>
-                <SelectItem value="Retail">Retail</SelectItem>
-              </SelectContent>
-            </Select>
-            {errors.category && (
-              <p className="text-red-500 text-sm">{errors.category}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label>Logo Image</Label>
-            <div
-              onDrop={handleDrop}
-              onDragOver={handleDragOver}
-              className={`border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors ${
-                errors.logoImage
-                  ? "border-red-500"
-                  : "border-gray-300 hover:border-primary"
-              }`}
-            >
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                id="logoUpload"
-                name="logoImage"
-                onChange={handleFileChange}
-              />
-              <label
-                htmlFor="logoUpload"
-                className="flex flex-col items-center justify-center min-h-36"
-              >
-                {uploadedUrl ? (
-                  <div className="relative">
-                    <Image
-                      src={uploadedUrl}
-                      alt="Uploaded Logo"
-                      height={1000}
-                      width={1000}
-                      className="h-full w-36 object-cover rounded-lg border"
-                    />
-                    <button
-                      type="button"
-                      onClick={handleRemoveImage}
-                      className="absolute top-0 right-0 p-1 bg-white rounded-full"
-                    >
-                      <X className="h-4 w-4 text-red-500" />
-                    </button>
-                  </div>
-                ) : loading ? (
-                  <p className="text-lg text-gray-500">Uploading...</p>
-                ) : error ? (
-                  <p className="text-sm text-red-500">{error}</p>
-                ) : (
-                  <>
-                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                    <p className="mt-2 text-sm text-gray-600">
-                      Drag & drop your logo here, or click to select
-                    </p>
-                  </>
+      {fetching ? (
+        <div className="flex justify-center items-center h-64">
+          <Spinner /> {/* Add Spinner component for loading */}
+        </div>
+      ) : (
+        (!brandName || brand) && (
+          <Card className="p-6">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="brandName">Brand Name</Label>
+                <Input
+                  id="brandName"
+                  name="brandName"
+                  placeholder="Brand Name"
+                  value={brandNameField}
+                  onChange={handleInputChange(setBrandNameField, "brandName")}
+                  className={errors.brandName ? "border-red-500" : ""}
+                />
+                {errors.brandName && (
+                  <p className="text-red-500 text-sm">{errors.brandName}</p>
                 )}
-              </label>
-            </div>
-            {errors.logoImage && (
-              <p className="text-red-500 text-sm">{errors.logoImage}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="brandId">Brand What's App no</Label>
-            <Input
-              id="brandId"
-              name="brandWhatsAppNo"
-              value={whatsAppNumber}
-              onChange={handleWhatsAppChange}
-              placeholder="+92-xxxxxxxxxx"
-              className={errors.whatsAppNumber ? "border-red-500" : ""}
-            />
-            {errors.whatsAppNumber && (
-              <p className="text-red-500 text-sm">{errors.whatsAppNumber}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              placeholder="placeholder"
-              name="description"
-              value={description}
-              onChange={handleInputChange(setDescription, "description")}
-              className={errors.description ? "border-red-500" : ""}
-            />
-            {errors.description && (
-              <p className="text-red-500 text-sm">{errors.description}</p>
-            )}
-          </div>
-
-          <div className="space-y-2">
-            <Label>Working Hours</Label>
-            {workingHours.map((day, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between space-x-2"
-              >
-                <span className="w-20">{day.day}</span>
-                <div className="flex flex-col">
-                  <div className="flex items-center gap-2 flex-col md:flex-row">
-                    <Input
-                      type="time"
-                      value={day.start}
-                      onChange={(e) =>
-                        handleWorkingHoursChange(index, "start", e.target.value)
-                      }
-                      placeholder="Start"
-                      readOnly={day.closes}
-                      className={
-                        errors[`workingHours-${index}`] ? "border-red-500" : ""
-                      }
-                    />
-                    <Input
-                      type="time"
-                      value={day.end}
-                      onChange={(e) =>
-                        handleWorkingHoursChange(index, "end", e.target.value)
-                      }
-                      placeholder="End"
-                      readOnly={day.closes}
-                      className={
-                        errors[`workingHours-${index}`] ? "border-red-500" : ""
-                      }
-                    />
-                    <label className="flex items-center space-x-2">
-                      <Input
-                        type="checkbox"
-                        checked={day.closes}
-                        onChange={(e) =>
-                          handleWorkingHoursChange(
-                            index,
-                            "closes",
-                            e.target.checked
-                          )
-                        }
-                      />
-                      <span>Closed</span>
-                    </label>
-                  </div>
-                  {errors[`workingHours-${index}`] && (
-                    <p className="text-red-500 text-sm">
-                      {errors[`workingHours-${index}`]}
-                    </p>
-                  )}
-                </div>
               </div>
-            ))}
-          </div>
 
-          <Button
-            type="submit"
-            className="w-full bg-red-500 hover:bg-red-400 text-white"
-          >
-            {reqLoading ? <Spinner /> : "Submit"}
-          </Button>
-        </form>
-      </Card>
+              <div className="space-y-2">
+                <Label htmlFor="category">Category</Label>
+                <Select
+                  name="category"
+                  value={category || "Select a category"} // Set the value to the current category
+                  onValueChange={(value) => {
+                    setCategory(value);
+                    setErrors((prev) => ({ ...prev, category: "" }));
+                  }}
+                >
+                  <SelectTrigger
+                    className={errors.category ? "border-red-500" : ""}
+                  >
+                    <SelectValue>{category || "Select a category"}</SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Food">Food</SelectItem>
+                    <SelectItem value="Retail">Retail</SelectItem>
+                  </SelectContent>
+                </Select>
+                {errors.category && (
+                  <p className="text-red-500 text-sm">{errors.category}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Logo Image</Label>
+                <div
+                  onDrop={handleDrop}
+                  onDragOver={handleDragOver}
+                  className={`border-2 border-dashed rounded-lg p-6 cursor-pointer text-center transition-colors ${
+                    errors.logoImage
+                      ? "border-red-500"
+                      : "border-gray-300 hover:border-primary"
+                  }`}
+                >
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    id="logoUpload"
+                    name="logoImage"
+                    onChange={handleFileChange}
+                  />
+                  <label
+                    htmlFor="logoUpload"
+                    className="flex flex-col items-center justify-center min-h-36"
+                  >
+                    {uploadedUrl ? (
+                      <div className="relative">
+                        <Image
+                          src={uploadedUrl}
+                          alt="Uploaded Logo"
+                          height={1000}
+                          width={1000}
+                          className="h-full w-36 object-cover rounded-lg border"
+                        />
+                        <button
+                          type="button"
+                          onClick={handleRemoveImage}
+                          className="absolute top-0 right-0 p-1 bg-white rounded-full"
+                        >
+                          <X className="h-4 w-4 text-red-500" />
+                        </button>
+                      </div>
+                    ) : loading ? (
+                      <p className="text-lg text-gray-500">Uploading...</p>
+                    ) : error ? (
+                      <p className="text-sm text-red-500">{error}</p>
+                    ) : (
+                      <>
+                        <Upload className="mx-auto h-12 w-12 text-gray-400" />
+                        <p className="mt-2 text-sm text-gray-600">
+                          Drag & drop your logo here, or click to select
+                        </p>
+                      </>
+                    )}
+                  </label>
+                </div>
+                {errors.logoImage && (
+                  <p className="text-red-500 text-sm">{errors.logoImage}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="brandId">Brand What's App no</Label>
+                <Input
+                  id="brandId"
+                  name="brandWhatsAppNo"
+                  value={whatsAppNumber}
+                  onChange={handleWhatsAppChange}
+                  placeholder="+92-xxxxxxxxxx"
+                  className={errors.whatsAppNumber ? "border-red-500" : ""}
+                />
+                {errors.whatsAppNumber && (
+                  <p className="text-red-500 text-sm">{errors.whatsAppNumber}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="description">Description</Label>
+                <Textarea
+                  id="description"
+                  placeholder="placeholder"
+                  name="description"
+                  value={description}
+                  onChange={handleInputChange(setDescription, "description")}
+                  className={errors.description ? "border-red-500" : ""}
+                />
+                {errors.description && (
+                  <p className="text-red-500 text-sm">{errors.description}</p>
+                )}
+              </div>
+
+              <div className="space-y-2">
+                <Label>Working Hours</Label>
+                {workingHours.map((day, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between space-x-2"
+                  >
+                    <span className="w-20">{day.day}</span>
+                    <div className="flex flex-col">
+                      <div className="flex items-center gap-2 flex-col md:flex-row">
+                        <Input
+                          type="time"
+                          value={day.start}
+                          onChange={(e) =>
+                            handleWorkingHoursChange(
+                              index,
+                              "start",
+                              e.target.value
+                            )
+                          }
+                          placeholder="Start"
+                          readOnly={day.closes}
+                          className={
+                            errors[`workingHours-${index}`]
+                              ? "border-red-500"
+                              : ""
+                          }
+                        />
+                        <Input
+                          type="time"
+                          value={day.end}
+                          onChange={(e) =>
+                            handleWorkingHoursChange(index, "end", e.target.value)
+                          }
+                          placeholder="End"
+                          readOnly={day.closes}
+                          className={
+                            errors[`workingHours-${index}`]
+                              ? "border-red-500"
+                              : ""
+                          }
+                        />
+                        <label className="flex items-center space-x-2">
+                          <Input
+                            type="checkbox"
+                            checked={day.closes}
+                            onChange={(e) =>
+                              handleWorkingHoursChange(
+                                index,
+                                "closes",
+                                e.target.checked
+                              )
+                            }
+                          />
+                          <span>Closed</span>
+                        </label>
+                      </div>
+                      {errors[`workingHours-${index}`] && (
+                        <p className="text-red-500 text-sm">
+                          {errors[`workingHours-${index}`]}
+                        </p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <Button
+                type="submit"
+                className="w-full bg-red-500 hover:bg-red-400 text-white"
+              >
+                {reqLoading ? <Spinner /> : "Submit"}
+              </Button>
+            </form>
+          </Card>
+        )
+      )}
     </div>
   );
 }
