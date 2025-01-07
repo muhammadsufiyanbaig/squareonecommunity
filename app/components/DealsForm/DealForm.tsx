@@ -181,6 +181,7 @@ export default function DealForm({ dealname }: DealFormProps) {
     }
   };
 
+
   const handleRemoveImage = (
     setUrl: (url: string | null) => void,
     setError: (error: string | null) => void
@@ -235,7 +236,10 @@ export default function DealForm({ dealname }: DealFormProps) {
       setTaglineError("Tagline is required");
       hasError = true;
     }
-    if (type === "discount" && (!tagline || Number(tagline) < 1 || Number(tagline) > 100)) {
+    if (
+      type === "discount" &&
+      (!tagline || Number(tagline) < 1 || Number(tagline) > 100)
+    ) {
       setDiscountError("Discount must be between 1 and 100");
       hasError = true;
     }
@@ -271,7 +275,7 @@ export default function DealForm({ dealname }: DealFormProps) {
     try {
       let response;
       if (deal) {
-        data.dealid = deal.dealid; 
+        data.dealid = deal.dealid;
         response = await axiosInstance.put("/deal/edit", data);
       } else {
         response = await axiosInstance.post("/deal/create", data);
@@ -351,7 +355,7 @@ export default function DealForm({ dealname }: DealFormProps) {
                   <SelectTrigger
                     className={`w-[180px] ${typeError ? "border-red-500" : ""}`}
                   >
-                    <SelectValue>
+                    <SelectValue placeholder="Select a type">
                       {type || (
                         <span className="text-gray-400">Select a type</span>
                       )}
@@ -428,7 +432,7 @@ export default function DealForm({ dealname }: DealFormProps) {
                       onValueChange={(value) => setDiscountType(value)}
                     >
                       <SelectTrigger className="w-[100px]">
-                        <SelectValue>{discountType}</SelectValue>
+                        <SelectValue>{tagline !== null ? tagline.split(" ")[0] : discountType}</SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Upto">Upto</SelectItem>
@@ -442,7 +446,7 @@ export default function DealForm({ dealname }: DealFormProps) {
                       placeholder="Discount Percentage"
                       min={1}
                       max={100}
-                      value={tagline !== null ? tagline : ""}
+                      value={tagline !== null ? tagline.split(" ")[1].split("%")[0] : ""}
                       onChange={(e) => {
                         setTagline(e.target.value.slice(0, 3));
                         setDiscountError(null);
