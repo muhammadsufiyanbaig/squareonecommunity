@@ -18,84 +18,54 @@ import {
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChevronDown, ChevronUp } from "lucide-react";
+import axiosInstance from "@/app/axiosInstanse";
 
 interface User {
   id: number;
-  name: string;
-  profileImage: string;
-  whatsappNo: string;
-  dateOfBirth: string;
+  whatsappno: string;
+  fullname: string;
+  dateofbirth: string;
   location: string;
   gender: "Male" | "Female" | "Other";
+  lastlogin: string;
+  profileImage: string;
+  createdat: string;
 }
-
-const users: User[] = [
-  {
-    id: 1,
-    name: "Alice Johnson",
-    profileImage: "/placeholder.svg?height=40&width=40",
-    whatsappNo: "+1234567890",
-    dateOfBirth: "1990-05-15",
-    location: "New York",
-    gender: "Female",
-  },
-  {
-    id: 2,
-    name: "Bob Smith",
-    profileImage: "/placeholder.svg?height=40&width=40",
-    whatsappNo: "+0987654321",
-    dateOfBirth: "1985-12-10",
-    location: "Los Angeles",
-    gender: "Male",
-  },
-  {
-    id: 3,
-    name: "Charlie Brown",
-    profileImage: "/placeholder.svg?height=40&width=40",
-    whatsappNo: "+1122334455",
-    dateOfBirth: "1992-08-22",
-    location: "Chicago",
-    gender: "Male",
-  },
-  {
-    id: 4,
-    name: "Diana Ross",
-    profileImage: "/placeholder.svg?height=40&width=40",
-    whatsappNo: "+5544332211",
-    dateOfBirth: "1988-03-30",
-    location: "Miami",
-    gender: "Female",
-  },
-  {
-    id: 5,
-    name: "Ethan Hunt",
-    profileImage: "/placeholder.svg?height=40&width=40",
-    whatsappNo: "+6677889900",
-    dateOfBirth: "1995-11-05",
-    location: "Seattle",
-    gender: "Male",
-  },
-];
 
 export default function UserTable() {
   const [locationFilter, setLocationFilter] = useState<string | null>(null);
   const [genderFilter, setGenderFilter] = useState<string | null>(null);
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [loading, setLoading] = useState<boolean>(true);
 
   useEffect(() => {
-    // Simulate a loading delay
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 1000);
-    return () => clearTimeout(timer);
+    const fetchUsers = async () => {
+      try {
+        const response = await axiosInstance.get("/auth/allusers");
+        console.log(response.data.data)
+        if (Array.isArray(response.data.data)) {
+          setUsers(response.data.data);
+        } else {
+          console.error("Unexpected response format: ", response.data);
+          setUsers([]);
+        }
+      } catch (err) {
+        console.error("Error fetching users", err);
+        setUsers([]); 
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchUsers();
   }, []);
+  
 
   const filteredAndSortedUsers = useMemo(() => {
     return users
       .filter((user) =>
-        user.name.toLowerCase().includes(searchTerm.toLowerCase())
+        user.fullname.toLowerCase().includes(searchTerm.toLowerCase())
       )
       .filter(
         (user) =>
@@ -111,12 +81,12 @@ export default function UserTable() {
       )
       .sort((a, b) => {
         if (sortOrder === "asc") {
-          return a.name.localeCompare(b.name);
+          return a.fullname.localeCompare(b.fullname);
         } else {
-          return b.name.localeCompare(a.name);
+          return b.fullname.localeCompare(a.fullname);
         }
       });
-  }, [searchTerm, locationFilter, genderFilter, sortOrder]);
+  }, [searchTerm, locationFilter, genderFilter, sortOrder, users]);
 
   const locations = Array.from(new Set(users.map((user) => user.location)));
   const genders = Array.from(new Set(users.map((user) => user.gender)));
@@ -138,6 +108,8 @@ export default function UserTable() {
               <TableHead>Date of Birth</TableHead>
               <TableHead>Location</TableHead>
               <TableHead>Gender</TableHead>
+              <TableHead>Register At</TableHead>
+              <TableHead>Last Login</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
@@ -145,6 +117,12 @@ export default function UserTable() {
               <TableRow key={i}>
                 <TableCell>
                   <div className="h-10 w-10 bg-gray-300 dark:bg-zinc-800/80 rounded-full"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded w-24"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded w-24"></div>
                 </TableCell>
                 <TableCell>
                   <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded w-24"></div>
@@ -243,6 +221,8 @@ export default function UserTable() {
             <TableHead>Date of Birth</TableHead>
             <TableHead>Location</TableHead>
             <TableHead>Gender</TableHead>
+            <TableHead>Register At</TableHead>
+            <TableHead>Last Login</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -257,20 +237,22 @@ export default function UserTable() {
               <TableRow key={user.id}>
                 <TableCell>
                   <Avatar>
-                    <AvatarImage src={user.profileImage} alt={user.name} />
+                    <AvatarImage src={user.profileImage} alt={user.fullname} />
                     <AvatarFallback>
-                      {user.name
+                      {user.fullname
                         .split(" ")
                         .map((n) => n[0])
                         .join("")}
                     </AvatarFallback>
                   </Avatar>
                 </TableCell>
-                <TableCell className="font-medium">{user.name}</TableCell>
-                <TableCell>{user.whatsappNo}</TableCell>
-                <TableCell>{user.dateOfBirth}</TableCell>
+                <TableCell className="font-medium">{user.fullname}</TableCell>
+                <TableCell>{user.whatsappno}</TableCell>
+                <TableCell>{user.dateofbirth}</TableCell>
                 <TableCell>{user.location}</TableCell>
                 <TableCell>{user.gender}</TableCell>
+                <TableCell>{new Date(user.createdat).toDateString()}</TableCell>
+                <TableCell>{new Date(user.lastlogin).toDateString()}</TableCell>
               </TableRow>
             ))
           )}
