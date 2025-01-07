@@ -14,32 +14,39 @@ import {
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
 import Switch from "./Switch-btn";
+import useAuthStore from "@/lib/base";
 
 export function UserNav() {
+  const { email, fullname } = useAuthStore();
   return (
     <DropdownMenu>
       <Switch />
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-8 w-8 rounded-full">
           <Avatar className="h-8 w-8 dark:border border-zinc-700">
-            <AvatarImage src="/avatars/01.png" alt="@johndoe" />
-            <AvatarFallback>JD</AvatarFallback>
+            <AvatarFallback className="text-theme">
+              {fullname
+                .split(" ")
+                .slice(0, 2)
+                .map((word) => word[0])
+                .join("")}
+            </AvatarFallback>
           </Avatar>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent className="w-56" align="end" forceMount>
         <DropdownMenuLabel className="font-normal">
           <div className="flex flex-col space-y-1">
-            <p className="text-sm font-medium leading-none">John Doe</p>
+            <p className="text-sm font-medium leading-none">{fullname}</p>
             <p className="text-xs leading-none text-muted-foreground">
-              john@example.com
+              {email}
             </p>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem>
-          <Link href={"/profile"}>Profile</Link>
+            <Link href={"/profile"}>Profile</Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />

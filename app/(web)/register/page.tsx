@@ -3,10 +3,11 @@
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import Image from "next/image";
-import Link from "next/link";
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { CheckIcon, CircleX, Cross, Eye, EyeOff } from "lucide-react";
+import axiosInstance from "@/app/axiosInstanse";
+import { useToast } from "@/hooks/use-toast";
+import Spinner from "@/app/components/Spinner";
 
 export default function AuthPage() {
   const [showPassword, setShowPassword] = useState(false);
@@ -14,6 +15,15 @@ export default function AuthPage() {
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
   const [emailValid, setEmailValid] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState({
+    fullName: "",
+    email: "",
+    password: "",
+  });
+  const [errormsg, setErrorMsg] = useState(null);
+
+  const { toast } = useToast();
 
   const validatePassword = (password: string) => {
     const criteria = /^(?=.*[A-Z])(?=.*\d).{8,}$/;
@@ -29,22 +39,66 @@ export default function AuthPage() {
     const newPassword = e.target.value;
     setPassword(newPassword);
     setPasswordValid(validatePassword(newPassword));
+    setFormData({ ...formData, password: newPassword });
   };
 
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newEmail = e.target.value;
     setEmail(newEmail);
     setEmailValid(isValidEmail(newEmail));
+    setFormData({ ...formData, email: newEmail });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
+    setLoading(true);
     e.preventDefault();
+    setErrorMsg(null);
     if (!validatePassword(password) || !isValidEmail(email)) {
       setPasswordValid(validatePassword(password));
       setEmailValid(isValidEmail(email));
       return;
     }
-    // ...existing code...
+
+    if (!formData.fullName || !formData.email || !formData.password) {
+      alert("Please fill in all fields before submitting");
+      return;
+    }
+    try {
+      const response = await axiosInstance.post("/admin/auth/signup", formData);
+      if (response.status === 200 || response.status === 201) {
+        toast({
+          title: "Admin created successfully",
+          description: (
+            <div className="flex items-center">
+              <span className="text-green-500 border border-green-500 rounded-full p-1 mr-2">
+                <CheckIcon className="h-4 w-4" />
+              </span>
+              <span className="first-letter:capitalize">
+                Admin created successfully
+              </span>
+            </div>
+          ),
+        });
+      }
+    } catch (error: any) {
+      console.error("Signup error:", error.response?.data || error.message);
+      const errorMsg =
+        error.response?.data?.message || "An error occurred during signup";
+      setErrorMsg(errorMsg);
+      toast({
+        title: "Somthing went wrong",
+        description: (
+          <div className="flex items-center">
+            <CircleX className="h-4 w-4 text-red-500 mr-2" />
+            <span className="first-letter:capitalize">
+              {errorMsg}
+            </span>
+          </div>
+        ),
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -69,10 +123,14 @@ export default function AuthPage() {
                       id="name"
                       placeholder="John Doe"
                       type="text"
+                      name="fullName"
                       autoCapitalize="none"
                       autoComplete="text"
                       autoCorrect="off"
                       required
+                      onChange={(e) => {
+                        setFormData({ ...formData, fullName: e.target.value });
+                      }}
                     />
                   </div>
                   <div>
@@ -81,6 +139,7 @@ export default function AuthPage() {
                       id="email"
                       placeholder="name@example.com"
                       type="email"
+                      name="email"
                       autoCapitalize="none"
                       autoComplete="email"
                       autoCorrect="off"
@@ -89,7 +148,9 @@ export default function AuthPage() {
                       required
                     />
                     {!emailValid && (
-                      <p className="text-red-500 text-xs mt-1">Invalid email address</p>
+                      <p className="text-red-500 text-xs mt-1">
+                        Invalid email address
+                      </p>
                     )}
                   </div>
                   <div>
@@ -100,6 +161,7 @@ export default function AuthPage() {
                         placeholder="*****"
                         type={showPassword ? "text" : "password"}
                         autoCapitalize="none"
+                        name="password"
                         autoComplete="text"
                         autoCorrect="off"
                         value={password}
@@ -117,10 +179,13 @@ export default function AuthPage() {
                         )}
                       </button>
                     </div>
+                    {!passwordValid && (
+                      <p className="text-red-500 text-xs mt-1">
+                        Password does not meet criteria
+                      </p>
+                    )}
                   </div>
-                  {!passwordValid && (
-                    <p className="text-red-500 text-xs mt-1">Password does not meet criteria</p>
-                  )}
+
                   <div id="passwordCriteria" className="text-sm space-y-2">
                     <p className="">Password Must contain:</p>
                     <ul className="list-disc pl-5 space-y-1">
@@ -131,7 +196,7 @@ export default function AuthPage() {
                   </div>
                 </div>
                 <Button className="w-full bg-red-600 hover:bg-red-700 text-white">
-                  Create
+                  {loading ? <Spinner /> : "Create"}
                 </Button>
               </div>
             </form>

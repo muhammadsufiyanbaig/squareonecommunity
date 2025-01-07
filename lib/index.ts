@@ -1,32 +1,48 @@
+import axiosInstance from "@/app/axiosInstanse";
 import axios from "axios";
 
-export type Deal = {
-  title: string;
-  description: string;
-  tagline: string;
-  startDate: string;
-  endDate: string;
+export interface code {
+  code: string;
+  fullName: string;
+  whatsAppNo: string;
+  profileImage: string;
+};
+
+export interface Deal {
+  type: string;
+  Banner: string;
+  Picture: string;
   createdAt: string;
-  picture: string;
-  code: string; 
-  purchasedBy: string[]; // Array of user IDs who purchased the deal
-};
-
-export type Brand = {
-  brandName: string;
-  category: string;
-  logoImage: string;
-  banner: string;
-  brandWhatsappNo: string;
+  dealid: string;
   description: string;
-  workingHours: {
-    start: string;
-    end: string;
-  };
-  deals: Deal[]; // Array of deals
+  endDate: string;
+  startDate: string;
+  tagline: string;
+  title: string;
+  code: code[] | null;
 };
 
-export type Events = {
+export interface WorkingHours {
+  day: string;
+  start: string;
+  end: string;
+  closes: boolean;
+}
+
+export interface Brand {
+  brandid: string;
+  brandname: string;
+  category: string;
+  logoimage: string;
+  createdby: string;
+  createdat: string;
+  brandwhatsappno: string;
+  description: string;
+  workinghours: WorkingHours[];
+  deals: Deal[];
+};
+
+export interface Events {
   title: string;
   description: string;
   background: string;
@@ -36,162 +52,31 @@ export type Events = {
     start: string;
     end: string;
   };
-  activities: string[]; // Array of activities
+  activities: string[]; 
 };
 
+export interface Ad {
+  id: string;
+  banner: string;
+  brandid: string;
+  createdby: string;
+  dealid: string;
+  startat: string;
+  endat: string;
+}
 
-export const brands: Brand[] = [
-  {
-    brandName: "TechGadgets",
-    category: "Electronics",
-    logoImage: "/chanel.jpg",
-    banner: "/chanel-banner.webp",
-    brandWhatsappNo: "+1234567890",
-    description: "Your one-stop shop for the latest tech gadgets and accessories.",
-    workingHours: {
-      start: "09:00",
-      end: "21:00",
-    },
-    deals: [
-      {
-        title: "Buy One Get One Free",
-        description: "Enjoy our exclusive offer on select items.",
-        tagline: "Limited-time deal!",
-        startDate: "2024-12-01",
-        endDate: "2024-12-10",
-        createdAt: "2024-11-30",
-        picture: "/deal.webp",
-        code: "BOGO123",
-        purchasedBy: ["user1", "user2"], // Example data
-      },
-      {
-        title: "20% Off on First Purchase",
-        description: "Sign up today and get 20% off your first purchase with us.",
-        tagline: "Welcome to savings!",
-        startDate: "2024-12-01",
-        endDate: "2024-12-31",
-        createdAt: "2024-11-30",
-        picture: "/deals/20off.jpg",
-        code: "FIRST20",
-        purchasedBy: ["user2"], // Example data
-      },
-      {
-        title: "Free Shipping Over $50",
-        description: "Get free shipping on all orders above $50.",
-        tagline: "Shop more, save more!",
-        startDate: "2024-12-01",
-        endDate: "2024-12-31",
-        createdAt: "2024-11-30",
-        picture: "/deals/freeshipping.jpg",
-        code: "FREESHIP",
-        purchasedBy: ["user1"], // Example data
-      },
-    ],
-  },
-  {
-    brandName: "TechGadgets",
-    category: "Electronics",
-    logoImage: "/chanel.jpg",
-    banner: "/chanel-banner.webp",
-    brandWhatsappNo: "+1234567890",
-    description: "Your one-stop shop for the latest tech gadgets and accessories.",
-    workingHours: {
-      start: "09:00",
-      end: "21:00",
-    },
-    deals: [
-      {
-        title: "Buy One Get One Free",
-        description: "Enjoy our exclusive offer on select items.",
-        tagline: "Limited-time deal!",
-        startDate: "2024-12-01",
-        endDate: "2024-12-10",
-        createdAt: "2024-11-30",
-        picture: "/deals/bogo.jpg",
-        code: "BOGO123",
-        purchasedBy: ["user1", "user2"], // Example data
-      },
-      {
-        title: "20% Off on First Purchase",
-        description: "Sign up today and get 20% off your first purchase with us.",
-        tagline: "Welcome to savings!",
-        startDate: "2024-12-01",
-        endDate: "2024-12-31",
-        createdAt: "2024-11-30",
-        picture: "/deals/20off.jpg",
-        code: "FIRST20",
-        purchasedBy: ["user2"], // Example data
-      },
-      {
-        title: "Free Shipping Over $50",
-        description: "Get free shipping on all orders above $50.",
-        tagline: "Shop more, save more!",
-        startDate: "2024-12-01",
-        endDate: "2024-12-31",
-        createdAt: "2024-11-30",
-        picture: "/deals/freeshipping.jpg",
-        code: "FREESHIP",
-        purchasedBy: ["user1"], // Example data
-      },
-    ],
-  },
-  {
-    brandName: "TechGadgets",
-    category: "Electronics",
-    logoImage: "/chanel.jpg",
-    banner: "/chanel-banner.webp",
-    brandWhatsappNo: "+1234567890",
-    description: "Your one-stop shop for the latest tech gadgets and accessories.",
-    workingHours: {
-      start: "09:00",
-      end: "21:00",
-    },
-    deals: [
-      {
-        title: "Buy One Get One Free",
-        description: "Enjoy our exclusive offer on select items.",
-        tagline: "Limited-time deal!",
-        startDate: "2024-12-01",
-        endDate: "2024-12-10",
-        createdAt: "2024-11-30",
-        picture: "/deals/bogo.jpg",
-        code: "BOGO123",
-        purchasedBy: ["user1", "user2"], // Example data
-      },
-      {
-        title: "20% Off on First Purchase",
-        description: "Sign up today and get 20% off your first purchase with us.",
-        tagline: "Welcome to savings!",
-        startDate: "2024-12-01",
-        endDate: "2024-12-31",
-        createdAt: "2024-11-30",
-        picture: "/deals/20off.jpg",
-        code: "FIRST20",
-        purchasedBy: ["user2"], // Example data
-      },
-      {
-        title: "Free Shipping Over $50",
-        description: "Get free shipping on all orders above $50.",
-        tagline: "Shop more, save more!",
-        startDate: "2024-12-01",
-        endDate: "2024-12-31",
-        createdAt: "2024-11-30",
-        picture: "/deals/freeshipping.jpg",
-        code: "FREESHIP",
-        purchasedBy: ["user1"], // Example data
-      },
-    ],
-  },
-];
+export let brands: Brand[] = [];
 
-export const findDeal = (brandName: string, dealCode: string) => {
-  const brand = brands.find(b => b.brandName === brandName);
-  if (!brand) return null;
-  return brand.deals.find(d => d.code === dealCode);
+export const findDeal = (array: Brand[], brandname: string, dealTitle: string) => {
+  const brand = array.find((b) => b.brandname === brandname);
+  if (!brand) return null;  
+  const deal = brand.deals.find((d) => d.title === dealTitle);
+  return deal;
 };
+
 
 export const findEvent = (eventTitle: string) => {
-  return events.find(e => e.title === eventTitle);
+  return events.find((e) => e.title === eventTitle);
 };
 
 export type User = {
@@ -208,7 +93,7 @@ export const users: User[] = [
   {
     userId: "user1",
     name: "John Doe",
-    whatAppNo: '+1234567890',
+    whatAppNo: "+1234567890",
     selectedDeals: [
       { dealTitle: "Buy One Get One Free", dealCode: "BOGO123" },
       { dealTitle: "Free Shipping Over $50", dealCode: "FREESHIP" },
@@ -217,7 +102,7 @@ export const users: User[] = [
   {
     userId: "user2",
     name: "Jane Smith",
-    whatAppNo: '+1234567890',
+    whatAppNo: "+1234567890",
     selectedDeals: [
       { dealTitle: "20% Off on First Purchase", dealCode: "FIRST20" },
     ],
@@ -227,7 +112,8 @@ export const users: User[] = [
 export const events: Events[] = [
   {
     title: "Tech Expo 2024",
-    description: "Join us for the annual Tech Expo showcasing the latest in technology.",
+    description:
+      "Join us for the annual Tech Expo showcasing the latest in technology.",
     background: "/chanel-banner.webp",
     banner: "/chanel-banner.webp",
     brandWhatsappNo: "+1234567890",
@@ -235,7 +121,11 @@ export const events: Events[] = [
       start: "2024-11-01",
       end: "2024-11-03",
     },
-    activities: ["/chanel-banner.webp", "/chanel-banner.webp", "/chanel-banner.webp"],
+    activities: [
+      "/chanel-banner.webp",
+      "/chanel-banner.webp",
+      "/chanel-banner.webp",
+    ],
   },
   {
     title: "Gadget Fest",
@@ -247,7 +137,12 @@ export const events: Events[] = [
       start: "2024-12-15",
       end: "2024-12-17",
     },
-    activities: ["/chanel-banner.webp", "/chanel-banner.webp", "/chanel-banner.webp", "/chanel-banner.webp"],
+    activities: [
+      "/chanel-banner.webp",
+      "/chanel-banner.webp",
+      "/chanel-banner.webp",
+      "/chanel-banner.webp",
+    ],
   },
   {
     title: "Gadget Fest",
@@ -259,11 +154,18 @@ export const events: Events[] = [
       start: "2024-12-15",
       end: "2024-12-17",
     },
-    activities: ["/chanel-banner.webp", "/chanel-banner.webp", "/chanel-banner.webp", "/chanel-banner.webp"],
+    activities: [
+      "/chanel-banner.webp",
+      "/chanel-banner.webp",
+      "/chanel-banner.webp",
+      "/chanel-banner.webp",
+    ],
   },
 ];
 
-export const uploadToCloudinary = async (file: File): Promise<string | null> => {
+export const uploadToCloudinary = async (
+  file: File
+): Promise<string | null> => {
   const formData = new FormData();
   formData.append("file", file);
   formData.append(
@@ -281,6 +183,18 @@ export const uploadToCloudinary = async (file: File): Promise<string | null> => 
       "Cloudinary Upload Error:",
       error.response ? error.response.data : error
     );
+    return null;
+  }
+};
+
+export const getBrands = async () => {
+  try {
+    const response = await axiosInstance.get("/brand/admin/all/get");
+    if (response.status === 200 || response.status === 201) {
+      brands = response.data.data;
+      return brands;
+    }
+  } catch (error) {
     return null;
   }
 };

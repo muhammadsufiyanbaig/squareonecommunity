@@ -1,10 +1,13 @@
 import {
+  BetweenHorizontalStart,
   CalendarDays,
   ChevronDown,
+  Handshake,
   Home,
   Settings,
   SquareChartGantt,
   UserRoundCheck,
+  UserRoundPlus,
   Users,
 } from "lucide-react";
 
@@ -58,15 +61,27 @@ const items = [
     dropdown: false,
   },
   {
+    title: "Ads",
+    url: "/ads",
+    icon: BetweenHorizontalStart,
+    dropdown: false,
+  },
+  {
     title: "Register Admin",
     url: "/register",
-    icon: UserRoundCheck,
+    icon: UserRoundPlus,
     dropdown: false,
   },
   {
     title: "Admin Profile",
     url: "/profile",
-    icon: Settings,
+    icon: UserRoundCheck,
+    dropdown: false,
+  },
+  {
+    title: "Support",
+    url: "/support",
+    icon: Handshake,
     dropdown: false,
   },
 ];
@@ -113,13 +128,13 @@ export function AppSidebar() {
                             >
                               <DropdownMenuGroup>
                                 <DropdownMenuItem>
-                                  <Link href={"/brands"}>All Brands</Link>
+                                  <Link className="flex-1" href={"/brands"}>All Brands</Link>
                                 </DropdownMenuItem>
                               </DropdownMenuGroup>
                               <DropdownMenuSeparator />
                               <DropdownMenuGroup>
                                 <DropdownMenuItem>
-                                  <Link href={"/brands/add"}>Add Brands</Link>
+                                  <Link className="flex-1" href={"/brands/add"}>Add Brands</Link>
                                 </DropdownMenuItem>
                               </DropdownMenuGroup>
                             </DropdownMenuContent>

@@ -1,10 +1,23 @@
-'use client';
+"use client";
 
-import { useState, useMemo } from 'react';
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {  ChevronDown, ChevronUp } from 'lucide-react';
+import { useState, useMemo, useEffect } from "react";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { ChevronDown, ChevronUp } from "lucide-react";
 
 interface User {
   id: number;
@@ -13,30 +26,91 @@ interface User {
   whatsappNo: string;
   dateOfBirth: string;
   location: string;
-  gender: 'Male' | 'Female' | 'Other';
+  gender: "Male" | "Female" | "Other";
 }
 
 const users: User[] = [
-  { id: 1, name: 'Alice Johnson', profileImage: '/placeholder.svg?height=40&width=40', whatsappNo: '+1234567890', dateOfBirth: '1990-05-15', location: 'New York', gender: 'Female' },
-  { id: 2, name: 'Bob Smith', profileImage: '/placeholder.svg?height=40&width=40', whatsappNo: '+0987654321', dateOfBirth: '1985-12-10', location: 'Los Angeles', gender: 'Male' },
-  { id: 3, name: 'Charlie Brown', profileImage: '/placeholder.svg?height=40&width=40', whatsappNo: '+1122334455', dateOfBirth: '1992-08-22', location: 'Chicago', gender: 'Male' },
-  { id: 4, name: 'Diana Ross', profileImage: '/placeholder.svg?height=40&width=40', whatsappNo: '+5544332211', dateOfBirth: '1988-03-30', location: 'Miami', gender: 'Female' },
-  { id: 5, name: 'Ethan Hunt', profileImage: '/placeholder.svg?height=40&width=40', whatsappNo: '+6677889900', dateOfBirth: '1995-11-05', location: 'Seattle', gender: 'Male' },
+  {
+    id: 1,
+    name: "Alice Johnson",
+    profileImage: "/placeholder.svg?height=40&width=40",
+    whatsappNo: "+1234567890",
+    dateOfBirth: "1990-05-15",
+    location: "New York",
+    gender: "Female",
+  },
+  {
+    id: 2,
+    name: "Bob Smith",
+    profileImage: "/placeholder.svg?height=40&width=40",
+    whatsappNo: "+0987654321",
+    dateOfBirth: "1985-12-10",
+    location: "Los Angeles",
+    gender: "Male",
+  },
+  {
+    id: 3,
+    name: "Charlie Brown",
+    profileImage: "/placeholder.svg?height=40&width=40",
+    whatsappNo: "+1122334455",
+    dateOfBirth: "1992-08-22",
+    location: "Chicago",
+    gender: "Male",
+  },
+  {
+    id: 4,
+    name: "Diana Ross",
+    profileImage: "/placeholder.svg?height=40&width=40",
+    whatsappNo: "+5544332211",
+    dateOfBirth: "1988-03-30",
+    location: "Miami",
+    gender: "Female",
+  },
+  {
+    id: 5,
+    name: "Ethan Hunt",
+    profileImage: "/placeholder.svg?height=40&width=40",
+    whatsappNo: "+6677889900",
+    dateOfBirth: "1995-11-05",
+    location: "Seattle",
+    gender: "Male",
+  },
 ];
 
 export default function UserTable() {
   const [locationFilter, setLocationFilter] = useState<string | null>(null);
   const [genderFilter, setGenderFilter] = useState<string | null>(null);
-  const [sortOrder, setSortOrder] = useState<'asc' | 'desc'>('asc');
-  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [searchTerm, setSearchTerm] = useState<string>("");
+  const [loading, setLoading] = useState<boolean>(true);
+
+  useEffect(() => {
+    // Simulate a loading delay
+    const timer = setTimeout(() => {
+      setLoading(false);
+    }, 1000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const filteredAndSortedUsers = useMemo(() => {
     return users
-      .filter((user) => user.name.toLowerCase().includes(searchTerm.toLowerCase()))
-      .filter((user) => !locationFilter || locationFilter === 'all' || user.location === locationFilter)
-      .filter((user) => !genderFilter || genderFilter === 'all' || user.gender === genderFilter)
+      .filter((user) =>
+        user.name.toLowerCase().includes(searchTerm.toLowerCase())
+      )
+      .filter(
+        (user) =>
+          !locationFilter ||
+          locationFilter === "all" ||
+          user.location === locationFilter
+      )
+      .filter(
+        (user) =>
+          !genderFilter ||
+          genderFilter === "all" ||
+          user.gender === genderFilter
+      )
       .sort((a, b) => {
-        if (sortOrder === 'asc') {
+        if (sortOrder === "asc") {
           return a.name.localeCompare(b.name);
         } else {
           return b.name.localeCompare(a.name);
@@ -47,9 +121,56 @@ export default function UserTable() {
   const locations = Array.from(new Set(users.map((user) => user.location)));
   const genders = Array.from(new Set(users.map((user) => user.gender)));
 
+  if (loading) {
+    return (
+      <div className="space-y-4 px-2 pt-4">
+        <div className="flex gap-4 flex-wrap">
+          <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2 w-[180px]"></div>
+          <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2 w-[180px]"></div>
+          <div className="h-8 bg-gray-300 dark:bg-zinc-800/80 rounded mb-2 w-[180px]"></div>
+        </div>
+        <Table>
+          <TableHeader className="bg-red-100 dark:bg-[#C12835] dark:text-white">
+            <TableRow>
+              <TableHead>Profile Image</TableHead>
+              <TableHead>Name</TableHead>
+              <TableHead>WhatsApp No</TableHead>
+              <TableHead>Date of Birth</TableHead>
+              <TableHead>Location</TableHead>
+              <TableHead>Gender</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {[...Array(5)].map((_, i) => (
+              <TableRow key={i}>
+                <TableCell>
+                  <div className="h-10 w-10 bg-gray-300 dark:bg-zinc-800/80 rounded-full"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded w-24"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded w-24"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded w-24"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded w-24"></div>
+                </TableCell>
+                <TableCell>
+                  <div className="h-6 bg-gray-300 dark:bg-zinc-800/80 rounded w-24"></div>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-4 px-2 pt-4">
-
       <div className="flex gap-4 flex-wrap">
         <input
           type="text"
@@ -58,52 +179,65 @@ export default function UserTable() {
           onChange={(e) => setSearchTerm(e.target.value)}
           className="w-[180px] px-2 py-1 border rounded-md dark:bg-zinc-700"
         />
-      <div className='flex gap-4'>
-      <Select onValueChange={(value) => setLocationFilter(value || null)}>
-          <SelectTrigger className="w-1/2 sm:w-[180px] dark:bg-zinc-700 dark:text-white">
-            <SelectValue placeholder="Filter by location" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All locations</SelectItem>
-            {locations.map((location) => (
-              <SelectItem
-                key={location}
-                value={location}
-                className={locationFilter === location ? '!bg-red-100 hover:!bg-red-200' : ''}
-              >
-                {location}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select onValueChange={(value) => setGenderFilter(value || null)}>
-          <SelectTrigger className="w-1/2 sm:w-[180px] dark:bg-zinc-700 dark:text-white">
-            <SelectValue placeholder="Filter by gender" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All genders</SelectItem>
-            {genders.map((gender) => (
-              <SelectItem
-                key={gender}
-                value={gender}
-                className={genderFilter === gender ? '!bg-red-100 hover:!bg-red-200' : ''}
-              >
-                {gender}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex gap-4">
+          <Select onValueChange={(value) => setLocationFilter(value || null)}>
+            <SelectTrigger className="w-1/2 sm:w-[180px] dark:bg-zinc-700 dark:text-white">
+              <SelectValue placeholder="Filter by location" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All locations</SelectItem>
+              {locations.map((location) => (
+                <SelectItem
+                  key={location}
+                  value={location}
+                  className={
+                    locationFilter === location
+                      ? "!bg-red-100 hover:!bg-red-200"
+                      : ""
+                  }
+                >
+                  {location}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select onValueChange={(value) => setGenderFilter(value || null)}>
+            <SelectTrigger className="w-1/2 sm:w-[180px] dark:bg-zinc-700 dark:text-white">
+              <SelectValue placeholder="Filter by gender" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All genders</SelectItem>
+              {genders.map((gender) => (
+                <SelectItem
+                  key={gender}
+                  value={gender}
+                  className={
+                    genderFilter === gender
+                      ? "!bg-red-100 hover:!bg-red-200"
+                      : ""
+                  }
+                >
+                  {gender}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
-      </div>
-      <Table className='text-theme'>
+      <Table className="text-theme">
         <TableHeader className="bg-red-100 dark:bg-[#C12835] dark:text-white">
           <TableRow>
             <TableHead>Profile Image</TableHead>
             <TableHead
               className="cursor-pointer"
-              onClick={() => setSortOrder(sortOrder === 'asc' ? 'desc' : 'asc')}
+              onClick={() => setSortOrder(sortOrder === "asc" ? "desc" : "asc")}
             >
-              Name {sortOrder === 'asc' ? <ChevronUp className="inline" /> : <ChevronDown className="inline" />}
+              Name{" "}
+              {sortOrder === "asc" ? (
+                <ChevronUp className="inline" />
+              ) : (
+                <ChevronDown className="inline" />
+              )}
             </TableHead>
             <TableHead>WhatsApp No</TableHead>
             <TableHead>Date of Birth</TableHead>
@@ -124,7 +258,12 @@ export default function UserTable() {
                 <TableCell>
                   <Avatar>
                     <AvatarImage src={user.profileImage} alt={user.name} />
-                    <AvatarFallback>{user.name.split(' ').map((n) => n[0]).join('')}</AvatarFallback>
+                    <AvatarFallback>
+                      {user.name
+                        .split(" ")
+                        .map((n) => n[0])
+                        .join("")}
+                    </AvatarFallback>
                   </Avatar>
                 </TableCell>
                 <TableCell className="font-medium">{user.name}</TableCell>
