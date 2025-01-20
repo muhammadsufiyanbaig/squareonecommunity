@@ -6,7 +6,7 @@ export interface code {
   fullName: string;
   whatsAppNo: string;
   profileImage: string;
-};
+}
 
 export interface Deal {
   type: string;
@@ -20,7 +20,7 @@ export interface Deal {
   tagline: string;
   title: string;
   code: code[] | null;
-};
+}
 
 export interface WorkingHours {
   day: string;
@@ -40,20 +40,20 @@ export interface Brand {
   description: string;
   workinghours: WorkingHours[];
   deals: Deal[];
-};
+}
 
 export interface Events {
+  id: string;
   title: string;
   description: string;
   background: string;
   banner: string;
-  brandWhatsappNo: string;
-  dates: {
-    start: string;
-    end: string;
-  };
-  activities: string[]; 
-};
+  start_date: string;
+  end_date: string;
+  activities: string[];
+  liked: string;
+  going: string;
+}
 
 export interface Ad {
   id: string;
@@ -66,14 +66,18 @@ export interface Ad {
 }
 
 export let brands: Brand[] = [];
+export let events: Events[] = [];
 
-export const findDeal = (array: Brand[], brandname: string, dealTitle: string) => {
+export const findDeal = (
+  array: Brand[],
+  brandname: string,
+  dealTitle: string
+) => {
   const brand = array.find((b) => b.brandname === brandname);
-  if (!brand) return null;  
+  if (!brand) return null;
   const deal = brand.deals.find((d) => d.title === dealTitle);
   return deal;
 };
-
 
 export const findEvent = (eventTitle: string) => {
   return events.find((e) => e.title === eventTitle);
@@ -109,60 +113,6 @@ export const users: User[] = [
   },
 ];
 
-export const events: Events[] = [
-  {
-    title: "Tech Expo 2024",
-    description:
-      "Join us for the annual Tech Expo showcasing the latest in technology.",
-    background: "/chanel-banner.webp",
-    banner: "/chanel-banner.webp",
-    brandWhatsappNo: "+1234567890",
-    dates: {
-      start: "2024-11-01",
-      end: "2024-11-03",
-    },
-    activities: [
-      "/chanel-banner.webp",
-      "/chanel-banner.webp",
-      "/chanel-banner.webp",
-    ],
-  },
-  {
-    title: "Gadget Fest",
-    description: "A festival celebrating the coolest gadgets and gizmos.",
-    background: "/chanel-banner.webp",
-    banner: "/chanel-banner.webp",
-    brandWhatsappNo: "+1234567890",
-    dates: {
-      start: "2024-12-15",
-      end: "2024-12-17",
-    },
-    activities: [
-      "/chanel-banner.webp",
-      "/chanel-banner.webp",
-      "/chanel-banner.webp",
-      "/chanel-banner.webp",
-    ],
-  },
-  {
-    title: "Gadget Fest",
-    description: "A festival celebrating the coolest gadgets and gizmos.",
-    background: "/chanel-banner.webp",
-    banner: "/chanel-banner.webp",
-    brandWhatsappNo: "+1234567890",
-    dates: {
-      start: "2024-12-15",
-      end: "2024-12-17",
-    },
-    activities: [
-      "/chanel-banner.webp",
-      "/chanel-banner.webp",
-      "/chanel-banner.webp",
-      "/chanel-banner.webp",
-    ],
-  },
-];
-
 export const uploadToCloudinary = async (
   file: File
 ): Promise<string | null> => {
@@ -193,6 +143,18 @@ export const getBrands = async () => {
     if (response.status === 200 || response.status === 201) {
       brands = response.data.data;
       return brands;
+    }
+  } catch (error) {
+    return null;
+  }
+};
+
+export const getEvents = async () => {
+  try {
+    const response = await axiosInstance.get("/event/admin/get");
+    if (response.status === 200 || response.status === 201) {
+      events = response.data.data;
+      return events;
     }
   } catch (error) {
     return null;

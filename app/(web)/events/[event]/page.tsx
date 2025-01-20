@@ -1,5 +1,7 @@
-import React from "react";
-import { findEvent } from "../../../../lib/index";
+"use client"
+
+import React, { useEffect, useState } from "react";
+import { useEventStore } from "@/lib/base";
 import Image from "next/image";
 import { Calendar, ChartSpline, Clock, Pencil, Users } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
@@ -12,10 +14,27 @@ import {
 } from "@/components/ui/carousel";
 import { Separator } from "@/components/ui/separator";
 import Link from "next/link";
+import { Events } from "@/lib";
 
-const page = async ({ params }: { params: Promise<{ event: string }> }) => {
-  const eventTitle = decodeURIComponent((await params).event);
-  const event = findEvent(eventTitle);
+const Page = ({ params }: { params: Promise<{ event: string }> }) => {
+  const { events } = useEventStore();
+  const [eventTitle, setEventTitle] = useState<string | null>(null);
+  const [event, setEvent] = useState<Events | null>(null);
+
+  useEffect(() => {
+    const fetchParams = async () => {
+      const resolvedParams = await params;
+      setEventTitle(decodeURIComponent(resolvedParams.event));
+    };
+    fetchParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (eventTitle) {
+      const foundEvent = events.find((e) => e.title === eventTitle);
+      setEvent(foundEvent || null);
+    }
+  }, [eventTitle, events]);
 
   if (!event) {
     return (
@@ -41,7 +60,7 @@ const page = async ({ params }: { params: Promise<{ event: string }> }) => {
                     <div className="space-y-1">
                       <p className="text-sm font-medium">Start Date</p>
                       <p className="text-sm text-muted-foreground">
-                        {event.dates.start}
+                        {new Date(event.start_date).toDateString()}
                       </p>
                     </div>
                   </div>
@@ -55,7 +74,7 @@ const page = async ({ params }: { params: Promise<{ event: string }> }) => {
                     <div className="space-y-1">
                       <p className="text-sm font-medium">End Date</p>
                       <p className="text-sm text-muted-foreground">
-                        {event.dates.end}
+                        {new Date(event.end_date).toDateString()}
                       </p>
                     </div>
                   </div>
@@ -76,7 +95,12 @@ const page = async ({ params }: { params: Promise<{ event: string }> }) => {
             <h2 className="text-2xl font-semibold tracking-tight">
               Activities
             </h2>
-            <Carousel className="w-full max-w-xl mx-auto">
+            <Carousel className="w-full max-w-xl mx-auto"
+            opts={{
+              align: "start",
+              loop: true,
+            }}
+            >
               <div className="flex items-center justify-end gap-2 mt-4 pr-4">
                 <CarouselPrevious className="relative left-0 right-0 top-0 bottom-0" />
                 <CarouselNext className="relative left-0 right-0 top-0 bottom-0" />
@@ -104,37 +128,33 @@ const page = async ({ params }: { params: Promise<{ event: string }> }) => {
 
         {/* Right Column */}
         <div className="h-fit">
-        <div className="grid gap-4 sm:grid-cols-2 mb-4 mt-14">
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2">
-                    <Users className="h-4 w-4 text-primary" />
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">Total going</p>
-                      <p className="text-sm text-muted-foreground">
-                        123
-                      </p>
-                    </div>
+          <div className="grid gap-4 sm:grid-cols-2 mb-4 mt-14">
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <Users className="h-4 w-4 text-primary" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">Likes</p>
+                    <p className="text-sm text-muted-foreground">{event.liked}</p>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </CardContent>
+            </Card>
 
-              <Card>
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-2">
-                    <ChartSpline className="h-4 w-4 text-primary" />
-                    <div className="space-y-1">
-                      <p className="text-sm font-medium">Total Interested</p>
-                      <p className="text-sm text-muted-foreground">
-                        321
-                      </p>
-                    </div>
+            <Card>
+              <CardContent className="p-4">
+                <div className="flex items-center gap-2">
+                  <ChartSpline className="h-4 w-4 text-primary" />
+                  <div className="space-y-1">
+                    <p className="text-sm font-medium">Total Going</p>
+                    <p className="text-sm text-muted-foreground">{event.going}</p>
                   </div>
-                </CardContent>
-              </Card>
-            </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
           <div className="aspect-[9/16] relative rounded-xl overflow-hidden">
-          <h1 className="text-3xl font-bold py-6">Background Image</h1>
+            <h1 className="text-3xl font-bold py-6">Background Image</h1>
             <Image
               src={event.background}
               alt={event.title}
@@ -147,7 +167,7 @@ const page = async ({ params }: { params: Promise<{ event: string }> }) => {
         </div>
       </div>
       <Link
-        href={`/events/${eventTitle}/edit`}
+        href={`/events/${eventTitle}/edit?title=${event.title}`}
         className="bg-red-500 p-4 rounded-full w-fit text-white hover:bg-red-700 transition-colors duration-150 cursor-pointer flex items-center justify-center fixed bottom-8 right-8 z-50"
       >
         <Pencil />
@@ -156,4 +176,4 @@ const page = async ({ params }: { params: Promise<{ event: string }> }) => {
   );
 };
 
-export default page;
+export default Page;
