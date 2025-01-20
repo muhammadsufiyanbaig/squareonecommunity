@@ -1,12 +1,13 @@
 "use client";
 
-import {  getEvents } from "@/lib";
-import { CirclePlus, Clock } from "lucide-react";
+import { getEvents } from "@/lib";
+import { CirclePlus, Clock, Trash } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { useEventStore } from "@/lib/base";
 import NoDataFound from "@/app/components/NoDataFound";
+import axiosInstance from "@/app/axiosInstanse";
 
 const Page = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -21,6 +22,17 @@ const Page = () => {
 
     fetchEventsData();
   }, [setEvents]);
+
+
+
+  const handleDelete = async (id: string) => {
+    try {
+      await axiosInstance.delete(`/event/delete`, { data: { id: id } });
+      setEvents(events.filter(event => event.id !== id));
+    } catch (error) {
+      console.error("Failed to delete event:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -75,8 +87,8 @@ const Page = () => {
               height={1000}
               className="rounded-xl border h-64 w-full object-cover"
             />
+              <h4 className="font-semibold text-xl absolute top-2 left-2 text-white mt-2">{event.title}</h4>
             <div className="flex justify-between items-center absolute bottom-2 px-4 w-full text-white z-50">
-              <h4 className="font-semibold text-xl mt-2">{event.title}</h4>
               <div className="flex flex-col gap-2 p-4">
                 <div>
                   <div className="flex items-center gap-2 text-xs">
@@ -90,6 +102,14 @@ const Page = () => {
                     <span>{new Date(event.end_date).toDateString()}</span>
                   </div>
                 </div>
+              </div>
+              <div className="flex p-2 bg-white rounded-full">              
+              <button
+                onClick={() => handleDelete(event.id)}
+                className="text-red-500 hover:text-red-700 transition-colors duration-150"
+              >
+                <Trash className="h-6 w-6" />
+              </button>
               </div>
             </div>
           </div>
