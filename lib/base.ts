@@ -1,6 +1,6 @@
 import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
-import { Brand, Deal, Ad } from ".";
+import { Brand, Deal, Ad, Events } from ".";
 
 interface AuthState {
   id: string;
@@ -115,5 +115,38 @@ const useAdStore = create<AdState>()(
   )
 );
 
+interface EventState {
+  events: Events[];
+  setEvents: (events: Events[]) => void;
+  updateEvent: (updatedEvent: Events) => void;
+  getEventById: (eventId: string) => Events | undefined; // Add this method
+  addEvent: (newEvent: Events) => void; // Add this method
+}
+
+const useEventStore = create<EventState>()(
+  devtools(
+    persist(
+      (set, get) => ({
+        events: [],
+        setEvents: (events: Events[]) => set((state) => ({ ...state, events })),
+        updateEvent: (updatedEvent: Events) =>
+          set((state) => ({
+            events: state.events.map((event) =>
+              event.id === updatedEvent.id ? updatedEvent : event
+            ),
+          })),
+        getEventById: (eventId: string) => get().events.find((event) => event.id === eventId), // Add this method
+        addEvent: (newEvent: Events) =>
+          set((state) => ({
+            events: [...state.events, newEvent],
+          })),
+      }),
+      {
+        name: "event-storage",
+      }
+    )
+  )
+);
+
 export default useAuthStore;
-export { useBrandStore, useAdStore };
+export { useBrandStore, useAdStore, useEventStore };

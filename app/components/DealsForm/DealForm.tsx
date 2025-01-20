@@ -432,7 +432,7 @@ export default function DealForm({ dealname }: DealFormProps) {
                       onValueChange={(value) => setDiscountType(value)}
                     >
                       <SelectTrigger className="w-[100px]">
-                        <SelectValue>{tagline !== null ? tagline.split(" ")[0] : discountType}</SelectValue>
+                        <SelectValue>{tagline ? tagline.split(" ")[0] : discountType}</SelectValue>
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="Upto">Upto</SelectItem>
@@ -446,7 +446,7 @@ export default function DealForm({ dealname }: DealFormProps) {
                       placeholder="Discount Percentage"
                       min={1}
                       max={100}
-                      value={tagline !== null ? tagline.split(" ")[1].split("%")[0] : ""}
+                      value={tagline ? tagline.split(" ")[1].split("%")[0] : ""}
                       onChange={(e) => {
                         setTagline(e.target.value.slice(0, 3));
                         setDiscountError(null);
