@@ -4,11 +4,12 @@ import NoDataFound from "@/app/components/NoDataFound";
 import { Badge } from "@/components/ui/badge";
 import { Brand, getBrands } from "@/lib";
 import { useBrandStore } from "@/lib/base";
-import { CirclePlus, Clock } from "lucide-react";
+import { CirclePlus, Clock, Trash } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import React, { useEffect, useState } from "react";
 import { GrDocumentMissing } from "react-icons/gr";
+import axiosInstance from "@/app/axiosInstanse";
 
 const Page = () => {
   const [loading, setLoading] = useState<boolean>(true);
@@ -25,6 +26,17 @@ const Page = () => {
 
     fetchBrandsData();
   }, [setBrands]);
+
+  
+
+  const handleDelete = async (id: string) => {
+    try {
+      await axiosInstance.delete(`/brand/delete`, { data: { id: id } });
+      setBrandData(brandData.filter(brandData => brandData.brandid !== id));
+    } catch (error) {
+      console.error("Failed to delete event:", error);
+    }
+  };
 
   if (loading) {
     return (
@@ -74,18 +86,27 @@ const Page = () => {
             href={`/brands/${brand.brandname}`}
             className="absolute inset-0 z-20"
           />
-          <div className="relative ">
-            <Image
-              src={brand.logoimage}
-              alt={brand.brandid}
-              width={1000}
-              height={1000}
-              className="rounded-xl border aspect-video object-cover object-center"
-            />
-            <Badge className="bg-red-500 absolute top-3 right-3 text-white">
-              {brand.category}
-            </Badge>
-          </div>
+       <div className="relative rounded-lg">
+  <div className="absolute top-3 right-3 flex items-center justify-center bg-white p-2 rounded-full shadow-md">
+    <button
+      onClick={() => handleDelete(brand.brandid)}
+      className="text-red-500 hover:text-red-700 transition-colors duration-150 relative z-50"
+    >
+      <Trash className="h-6 w-6" />
+    </button>
+  </div>
+  <Image
+    src={brand.logoimage}
+    alt={brand.brandid}
+    width={1000}
+    height={1000}
+    className="rounded-xl border border-gray-300 aspect-video object-cover object-center"
+  />
+  <Badge className="absolute top-3 left-3 bg-red-500 text-white text-xs font-medium py-1 px-2 rounded-lg">
+    {brand.category}
+  </Badge>
+</div>
+
           <div>
             <div className="flex  gap-6">
               <h4 className="font-semibold text-sm lg:text-xl mt-2 ps-4">
@@ -95,7 +116,6 @@ const Page = () => {
             <p className="mt-2 text-sm px-4 line-clamp-3">
               {brand.description}
             </p>
-          
           </div>
         </div>
       ))}
