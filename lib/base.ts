@@ -36,12 +36,13 @@ interface BrandState {
   removeDeal: (dealId: string) => void;
   updateDeal: (brandId: string, updatedDeal: Deal) => void;
   addDeal: (brandId: string, newDeal: Deal) => void;
+  getAllDeals: () => Deal[];
 }
 
 const useBrandStore = create<BrandState>()(
   devtools(
     persist(
-      (set) => ({
+      (set, get) => ({
         brands: [],
         setBrands: (brands: Brand[]) => set((state) => ({ ...state, brands })),
         removeDeal: (dealId: string) =>
@@ -81,6 +82,9 @@ const useBrandStore = create<BrandState>()(
               return brand;
             }),
           })),
+        getAllDeals: () => {
+          return get().brands.flatMap((brand) => brand.deals);
+        },
       }),
       {
         name: "brand-storage",
@@ -121,6 +125,7 @@ interface EventState {
   updateEvent: (updatedEvent: Events) => void;
   getEventById: (eventId: string) => Events | undefined; // Add this method
   addEvent: (newEvent: Events) => void; // Add this method
+  getAllEvents: () => Events[];
 }
 
 const useEventStore = create<EventState>()(
@@ -140,6 +145,9 @@ const useEventStore = create<EventState>()(
           set((state) => ({
             events: [...state.events, newEvent],
           })),
+        getAllEvents: () => {
+          return get().events;
+        },
       }),
       {
         name: "event-storage",

@@ -1,4 +1,5 @@
 import {
+  BellRing,
   BetweenHorizontalStart,
   CalendarDays,
   ChevronDown,
@@ -58,6 +59,12 @@ const items = [
     title: "Events",
     url: "/events",
     icon: CalendarDays,
+    dropdown: false,
+  },
+  {
+    title: "Notification",
+    url: "/notification",
+    icon: BellRing,
     dropdown: false,
   },
   {
