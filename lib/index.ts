@@ -176,3 +176,19 @@ export const getTopBrands = (brands: Brand[], topN: number = 5): Brand[] => {
   });
   return sortedBrands.slice(0, topN);
 };
+
+export const getMonthlyDealCounts = (deals: Deal[]) => {
+  const monthlyCounts: { [key: string]: number } = {};
+  deals.forEach((deal) => {
+    deal.code?.forEach((code) => {
+      const monthYear = new Date(code.createdAt).toLocaleString('default', { month: 'short', year: 'numeric' });
+      if (!monthlyCounts[monthYear]) {
+        monthlyCounts[monthYear] = 0;
+      }
+      monthlyCounts[monthYear] += 1;
+    });
+  });
+  return Object.entries(monthlyCounts)
+    .map(([name, total]) => ({ name, total }))
+    .sort((a, b) => new Date(`1 ${a.name}`).getTime() - new Date(`1 ${b.name}`).getTime());
+};

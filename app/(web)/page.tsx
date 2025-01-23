@@ -143,7 +143,7 @@ export default function Home() {
         <div className="grid">
           <Card>
             <CardHeader className="!px-2 md:px-6">
-              <CardTitle>Sales Overview</CardTitle>
+              <CardTitle>Code </CardTitle>
               <CardContent className="!px-2 md:px-6">
                 <Overview />
               </CardContent>
