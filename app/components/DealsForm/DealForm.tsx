@@ -425,18 +425,18 @@ export default function DealForm({ dealname }: DealFormProps) {
               ) : type === "discount" ? (
                 <div className="space-y-2">
                   <Label htmlFor="discount">Discount (%)</Label>
-                  <div className="flex space-x-2">
+                    <div className="flex space-x-2">
                     <Select
                       name="discountType"
                       value={discountType}
                       onValueChange={(value) => setDiscountType(value)}
                     >
                       <SelectTrigger className="w-[100px]">
-                        <SelectValue>{tagline ? tagline.split(" ")[0] : discountType}</SelectValue>
+                      <SelectValue>{discountType}</SelectValue>
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Upto">Upto</SelectItem>
-                        <SelectItem value="Flat">Flat</SelectItem>
+                      <SelectItem value="Upto">Upto</SelectItem>
+                      <SelectItem value="Flat">Flat</SelectItem>
                       </SelectContent>
                     </Select>
                     <Input
@@ -446,14 +446,15 @@ export default function DealForm({ dealname }: DealFormProps) {
                       placeholder="Discount Percentage"
                       min={1}
                       max={100}
-                      value={tagline ? tagline.split(" ")[1].split("%")[0] : ""}
+                      value={tagline ? tagline.split(" ")[1]?.split("%")[0] || tagline : tagline}
                       onChange={(e) => {
-                        setTagline(e.target.value.slice(0, 3));
-                        setDiscountError(null);
+                      const value = Math.min(Number(e.target.value.slice(0, 3)), 100);
+                      setTagline(value.toString());
+                      setDiscountError(null);
                       }}
                       className={discountError ? "border-red-500" : ""}
                     />
-                  </div>
+                    </div>
                   {discountError && (
                     <p className="text-red-500 text-sm">{discountError}</p>
                   )}

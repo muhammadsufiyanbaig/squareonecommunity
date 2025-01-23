@@ -2,20 +2,64 @@
 
 import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// import Image from "next/image";
 import { TopDeals } from "../components/top-deals";
 import { Overview } from "../components/overview";
 import { TopBrands } from "../components/top-brands";
+import axiosInstance from "@/app/axiosInstanse";
+import useAuthStore, { useBrandStore, useAdStore, useEventStore } from "@/lib/base";
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
+  const setUsers = useAuthStore((state) => state.setUsers);
+  const setBrands = useBrandStore((state) => state.setBrands);
+  const setAds = useAdStore((state) => state.setAds);
+  const setEvents = useEventStore((state) => state.setEvents);
+  const users = useAuthStore((state) => state.users);
+  const brands = useBrandStore((state) => state.brands);
+  const ads = useAdStore((state) => state.ads);
+  const events = useEventStore((state) => state.events);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setLoading(false);
-    }, 2000);
-    return () => clearTimeout(timer);
-  }, []);
+    const fetchData = async () => {
+      try {
+        const [usersResponse, brandsResponse, adsResponse, eventsResponse] = await Promise.all([
+          axiosInstance.get("/auth/allusers"),
+          axiosInstance.get("/brand/admin/all/get"),
+          axiosInstance.get("/ad/get"),
+          axiosInstance.get("/event/admin/get"),
+        ]);
+
+        if (Array.isArray(usersResponse.data.data)) {
+          setUsers(usersResponse.data.data);
+        } else {
+          console.error("Unexpected response format: ", usersResponse.data);
+        }
+
+        if (Array.isArray(brandsResponse.data.data)) {
+          setBrands(brandsResponse.data.data);
+        } else {
+          console.error("Unexpected response format: ", brandsResponse.data);
+        }
+
+        if (Array.isArray(adsResponse.data.data)) {
+          setAds(adsResponse.data.data);
+        } else {
+          console.error("Unexpected response format: ", adsResponse.data);
+        }
+
+        if (Array.isArray(eventsResponse.data.data)) {
+          setEvents(eventsResponse.data.data);
+        } else {
+          console.error("Unexpected response format: ", eventsResponse.data);
+        }
+      } catch (err) {
+        console.error("Error fetching data", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, [setUsers, setBrands, setAds, setEvents]);
 
   if (loading) {
     return (
@@ -60,103 +104,39 @@ export default function Home() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Active Users
+                All Users
               </CardTitle>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                className="h-4 w-4 text-muted-foreground"
-              >
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                <circle cx="9" cy="7" r="4" />
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75" />
-              </svg>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">2,345</div>
-              <p className="text-xs text-muted-foreground">
-                +180 from last month
-              </p>
+              <div className="text-2xl font-bold">{users.length}</div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                New Users
+                All Brands
               </CardTitle>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                className="h-4 w-4 text-muted-foreground"
-              >
-                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2" />
-                <circle cx="12" cy="7" r="4" />
-              </svg>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+573</div>
-              <p className="text-xs text-muted-foreground">
-                +201 since last week
-              </p>
+              <div className="text-2xl font-bold">{brands.length}</div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Sales</CardTitle>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                className="h-4 w-4 text-muted-foreground"
-              >
-                <rect width="20" height="14" x="2" y="5" rx="2" />
-                <path d="M2 10h20" />
-              </svg>
+              <CardTitle className="text-sm font-medium">All Deals</CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">$45,231.89</div>
-              <p className="text-xs text-muted-foreground">
-                +20.1% from last month
-              </p>
+              <div className="text-2xl font-bold">{brands.reduce((acc, brand) => acc + (brand.deals?.length || 0), 0)}</div>
             </CardContent>
           </Card>
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">
-                Active Now
+                All Ads
               </CardTitle>
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                className="h-4 w-4 text-muted-foreground"
-              >
-                <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-              </svg>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">+573</div>
-              <p className="text-xs text-muted-foreground">
-                +201 since last hour
-              </p>
+              <div className="text-2xl font-bold">{ads.length}</div>
             </CardContent>
           </Card>
         </div>
