@@ -6,6 +6,7 @@ export interface code {
   fullName: string;
   whatsAppNo: string;
   profileImage: string;
+  createdAt: string;
 }
 
 export interface Deal {
@@ -159,4 +160,19 @@ export const getEvents = async () => {
   } catch (error) {
     return null;
   }
+};
+
+export const getTopDeals = (brands: Brand[], topN: number = 5): Deal[] => {
+  const allDeals = brands.flatMap((brand) => brand.deals);
+  const sortedDeals = allDeals.sort((a, b) => (b.code?.length || 0) - (a.code?.length || 0));
+  return sortedDeals.slice(0, topN);
+};
+
+export const getTopBrands = (brands: Brand[], topN: number = 5): Brand[] => {
+  const sortedBrands = brands.sort((a, b) => {
+    const aCodes = a.deals.reduce((acc, deal) => acc + (deal.code?.length || 0), 0);
+    const bCodes = b.deals.reduce((acc, deal) => acc + (deal.code?.length || 0), 0);
+    return bCodes - aCodes;
+  });
+  return sortedBrands.slice(0, topN);
 };

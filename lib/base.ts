@@ -2,13 +2,26 @@ import { create } from "zustand";
 import { devtools, persist } from "zustand/middleware";
 import { Brand, Deal, Ad, Events } from ".";
 
+interface User {
+  id: number;
+  whatsappno: string;
+  fullname: string;
+  dateofbirth: string;
+  location: string;
+  gender: "Male" | "Female" | "Other";
+  lastlogin: string;
+  profileImage: string;
+  createdat: string;
+}
 interface AuthState {
   id: string;
   email: string;
   fullname: string;
+  users: User[];
   setAdminId: (id: string) => void;
   setAdminEmail: (email: string) => void;
   setFullname: (fullname: string) => void;
+  setUsers: (users: User[]) => void;
 }
 
 const useAuthStore = create<AuthState>()(
@@ -18,10 +31,12 @@ const useAuthStore = create<AuthState>()(
         id: "",
         email: "",
         fullname: "",
+        users: [],
         setAdminId: (id: string) => set((state) => ({ ...state, id })),
         setAdminEmail: (email: string) => set((state) => ({ ...state, email })),
         setFullname: (fullname: string) =>
           set((state) => ({ ...state, fullname })),
+        setUsers: (users: User[]) => set((state) => ({ ...state, users })),
       }),
       {
         name: "auth-storage",
@@ -58,7 +73,6 @@ const useBrandStore = create<BrandState>()(
           set((state) => ({
             brands: state.brands.map((brand) => {
               if (brand.brandid === brandId) {
-                console.log(updatedDeal)
                 const updatedDeals = Array.isArray(brand.deals)
                   ? brand.deals.map((deal) =>
                       deal.dealid === updatedDeal.dealid ? updatedDeal : deal
@@ -66,7 +80,6 @@ const useBrandStore = create<BrandState>()(
                   : [updatedDeal];
                 return { ...brand, deals: updatedDeals };
               }
-              // console.log(brand);
               return brand;
             }),
           })),
@@ -97,7 +110,7 @@ interface AdState {
   ads: Ad[];
   setAds: (ads: Ad[]) => void;
   removeAd: (adId: string) => void;
-  getAdById: (adId: string) => Ad | undefined; 
+  getAdById: (adId: string) => Ad | undefined;
 }
 
 const useAdStore = create<AdState>()(
@@ -110,7 +123,7 @@ const useAdStore = create<AdState>()(
           set((state) => ({
             ads: state.ads.filter((ad) => ad.id !== adId),
           })),
-        getAdById: (adId: string) => get().ads.find((ad) => ad.id === adId), // Add this method
+        getAdById: (adId: string) => get().ads.find((ad) => ad.id === adId),
       }),
       {
         name: "ad-storage",
@@ -123,8 +136,8 @@ interface EventState {
   events: Events[];
   setEvents: (events: Events[]) => void;
   updateEvent: (updatedEvent: Events) => void;
-  getEventById: (eventId: string) => Events | undefined; // Add this method
-  addEvent: (newEvent: Events) => void; // Add this method
+  getEventById: (eventId: string) => Events | undefined;
+  addEvent: (newEvent: Events) => void;
   getAllEvents: () => Events[];
 }
 
@@ -140,7 +153,7 @@ const useEventStore = create<EventState>()(
               event.id === updatedEvent.id ? updatedEvent : event
             ),
           })),
-        getEventById: (eventId: string) => get().events.find((event) => event.id === eventId), // Add this method
+        getEventById: (eventId: string) => get().events.find((event) => event.id === eventId),
         addEvent: (newEvent: Events) =>
           set((state) => ({
             events: [...state.events, newEvent],

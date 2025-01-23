@@ -36,6 +36,7 @@ export default function CustomForm() {
     const fetchData = async () => {
       if (formData.type === "deal") {
         const dealsData = await getAllDeals();
+        console.log(dealsData)
         setDeals(dealsData);
       } else if (formData.type === "event") {
         const eventsData = await getAllEvents();
@@ -112,7 +113,7 @@ export default function CustomForm() {
     <div className="flex items-center justify-center min-h-[85vh] bg-gray-100 dark:bg-zinc-900 px-8">
       <form
         onSubmit={handleSubmit}
-        className="space-y-6 max-w-xl w-full mx-auto p-6 bg-white rounded-lg shadow-md"
+        className="space-y-6 max-w-xl w-full mx-auto p-6 bg-white rounded-lg shadow-md dark:bg-zinc-900 dark:border dark:text-white"
       >
         <div className="space-y-2">
           <Label htmlFor="title">Title</Label>
