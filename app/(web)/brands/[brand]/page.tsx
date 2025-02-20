@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Deal } from "@/lib";
+import { Deal, WorkingHours } from "@/lib";
 import { useBrandStore } from "@/lib/base";
 import { Calendar, CheckIcon, CircleX, Pencil } from "lucide-react";
 import Image from "next/image";
@@ -220,7 +220,7 @@ const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
       <div className="flex  flex-col gap-2 mt-6">
         <h2 className="text-2xl font-semibold">Working Hours</h2>
         <div>
-          {brand.workinghours.map((hours, index) => (
+          {JSON.parse(brand.workinghours as any).map((hours: WorkingHours, index: number) => (
             <div className="max-w-md" key={index}>
               {!hours.closes ? (
                 <div key={index} className="grid grid-cols-2 mb-1">
