@@ -19,8 +19,9 @@ import { usePathname, useRouter } from "next/navigation";
 import NotFound from "@/app/(web)/not-found";
 
 const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
-  const [dealTitle, setDealTitle] = useState<string>("");
+  const [dealId, setDealId] = useState<string>("");
   const [foundedDeal, setFoundedDeal] = useState<Deal | null>(null);
+  const [showNotFound, setShowNotFound] = useState<boolean>(false);
   const { brands } = useBrandStore();
   const pathname = usePathname();
   const brandName = pathname.split("/")[2];
@@ -28,7 +29,7 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
 
   useEffect(() => {
     params.then((unwrappedParams) => {
-      setDealTitle(unwrappedParams.deal);
+      setDealId(unwrappedParams.deal);
     });
   }, [params]);
 
@@ -36,20 +37,24 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
     const foundDeal = findDeal(
       brands,
       decodeURIComponent(brandName),
-      decodeURIComponent(dealTitle)
+      decodeURIComponent(dealId)
     );
     setFoundedDeal(foundDeal || null);
-  }, [brands, brandName, dealTitle]);
+  }, [brands, brandName, dealId]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
       if (!foundedDeal) {
-        return <NotFound />;
+        setShowNotFound(true);
       }
     }, 5000); // 5 seconds delay
 
     return () => clearTimeout(timer);
   }, [foundedDeal, router]);
+
+  if (showNotFound) {
+    return <NotFound />;
+  }
 
   if (!foundedDeal) {
     return (
@@ -165,8 +170,8 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {foundedDeal.code && foundedDeal.code.length > 0 ? (
-                  foundedDeal.code.map((user, i) => (
+                {foundedDeal.redeem && foundedDeal.redeem.length > 0 ? (
+                  foundedDeal.redeem.map((user, i) => (
                     <TableRow key={i}>
                       <TableCell>
                         <Image
@@ -179,7 +184,7 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
                       </TableCell>
                       <TableCell>{user.fullName}</TableCell>
                       <TableCell>{user.whatsAppNo}</TableCell>
-                      <TableCell>{user.code}</TableCell>
+                      <TableCell>{user.redeem}</TableCell>
                     </TableRow>
                   ))
                 ) : (
@@ -193,7 +198,7 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
             </Table>
           </div>
           <Link
-            href={`${foundedDeal.title}/editDeal?dealname=${foundedDeal.title}`}
+            href={`${foundedDeal.dealid}/editDeal?dealname=${encodeURIComponent(foundedDeal.dealid)}`}
             className="bg-red-500 p-4 rounded-full w-fit text-white hover:bg-red-700 transition-colors duration-150 cursor-pointer flex items-center justify-center fixed bottom-8 right-8"
           >
             <Pencil />

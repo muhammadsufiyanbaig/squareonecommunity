@@ -1,8 +1,8 @@
 import axiosInstance from "@/app/axiosInstanse";
 import axios from "axios";
 
-export interface code {
-  code: string;
+export interface redeem {
+  redeem: string;
   fullName: string;
   whatsAppNo: string;
   profileImage: string;
@@ -20,7 +20,7 @@ export interface Deal {
   startDate: string;
   tagline: string;
   title: string;
-  code: code[] | null;
+  redeem: redeem[] | null;
 }
 
 export interface WorkingHours {
@@ -72,11 +72,11 @@ export let events: Events[] = [];
 export const findDeal = (
   array: Brand[],
   brandname: string,
-  dealTitle: string
+  dealID: string
 ) => {
   const brand = array.find((b) => b.brandname === brandname);
   if (!brand) return null;
-  const deal = brand.deals.find((d) => d.title === dealTitle);
+  const deal = brand.deals.find((d) => d.dealid === dealID);
   return deal;
 };
 
@@ -164,15 +164,15 @@ export const getEvents = async () => {
 
 export const getTopDeals = (brands: Brand[], topN: number = 5): Deal[] => {
   const allDeals = brands.flatMap((brand) => brand.deals);
-  const sortedDeals = allDeals.sort((a, b) => (b.code?.length || 0) - (a.code?.length || 0));
+  const sortedDeals = allDeals.sort((a, b) => (b.redeem?.length || 0) - (a.redeem?.length || 0));
   return sortedDeals.slice(0, topN);
 };
 
 export const getTopBrands = (brands: Brand[], topN: number = 5): Brand[] => {
   const sortedBrands = brands.sort((a, b) => {
-    const aCodes = a.deals.reduce((acc, deal) => acc + (deal.code?.length || 0), 0);
-    const bCodes = b.deals.reduce((acc, deal) => acc + (deal.code?.length || 0), 0);
-    return bCodes - aCodes;
+    const aRedeems = a.deals.reduce((acc, deal) => acc + (deal.redeem?.length || 0), 0);
+    const bRedeems = b.deals.reduce((acc, deal) => acc + (deal.redeem?.length || 0), 0);
+    return bRedeems - aRedeems;
   });
   return sortedBrands.slice(0, topN);
 };
@@ -180,7 +180,7 @@ export const getTopBrands = (brands: Brand[], topN: number = 5): Brand[] => {
 export const getMonthlyDealCounts = (deals: Deal[]) => {
   const monthlyCounts: { [key: string]: number } = {};
   deals.forEach((deal) => {
-    deal.code?.forEach((code) => {
+    deal.redeem?.forEach((code) => {
       const monthYear = new Date(code.createdAt).toLocaleString('default', { month: 'short', year: 'numeric' });
       if (!monthlyCounts[monthYear]) {
         monthlyCounts[monthYear] = 0;

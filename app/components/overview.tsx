@@ -12,7 +12,7 @@ export function Overview() {
       const brands = await getBrands();
       if (brands) {
         const allDeals = brands.flatMap(brand => brand.deals);
-        console.log(allDeals.map(deal => deal.code));
+        console.log(allDeals.map(deal => deal.redeem));
         const monthlyDealCounts = getMonthlyDealCounts(allDeals);
         setData(monthlyDealCounts);
       }
