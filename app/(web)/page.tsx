@@ -10,6 +10,7 @@ import useAuthStore, { useBrandStore, useAdStore, useEventStore } from "@/lib/ba
 
 export default function Home() {
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null); // added error state
   const setUsers = useAuthStore((state) => state.setUsers);
   const setBrands = useBrandStore((state) => state.setBrands);
   const setAds = useAdStore((state) => state.setAds);
@@ -21,42 +22,78 @@ export default function Home() {
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const [usersResponse, brandsResponse, adsResponse, eventsResponse] = await Promise.all([
-          axiosInstance.get("/auth/allusers"),
-          axiosInstance.get("/brand/admin/all/get"),
-          axiosInstance.get("/ad/get"),
-          axiosInstance.get("/event/admin/get"),
-        ]);
+      const errors: string[] = [];
+      const results = await Promise.allSettled([
+        axiosInstance.get("/auth/allusers"),
+        axiosInstance.get("/brand/admin/all/get"),
+        axiosInstance.get("/ad/get"),
+        axiosInstance.get("/event/admin/get"),
+      ]);
 
-        if (Array.isArray(usersResponse.data.data)) {
-          setUsers(usersResponse.data.data);
+      // Process Users
+      if (results[0].status === "fulfilled") {
+        const usersData = results[0].value.data.data;
+        if (Array.isArray(usersData)) {
+          setUsers(usersData);
         } else {
-          console.error("Unexpected response format: ", usersResponse.data);
+          console.error("Unexpected response format for users");
+          setUsers([]);
+          errors.push("Users");
         }
-
-        if (Array.isArray(brandsResponse.data.data)) {
-          setBrands(brandsResponse.data.data);
-        } else {
-          console.error("Unexpected response format: ", brandsResponse.data);
-        }
-
-        if (Array.isArray(adsResponse.data.data)) {
-          setAds(adsResponse.data.data);
-        } else {
-          console.error("Unexpected response format: ", adsResponse.data);
-        }
-
-        if (Array.isArray(eventsResponse.data.data)) {
-          setEvents(eventsResponse.data.data);
-        } else {
-          console.error("Unexpected response format: ", eventsResponse.data);
-        }
-      } catch (err) {
-        console.error("Error fetching data", err);
-      } finally {
-        setLoading(false);
+      } else {
+        console.error("Error fetching users", results[0].reason);
+        errors.push("Users");
       }
+
+      // Process Brands
+      if (results[1].status === "fulfilled") {
+        const brandsData = results[1].value.data.data;
+        if (Array.isArray(brandsData)) {
+          setBrands(brandsData);
+        } else {
+          console.error("Unexpected response format for brands");
+          setBrands([]);
+          errors.push("Brands");
+        }
+      } else {
+        console.error("Error fetching brands", results[1].reason);
+        errors.push("Brands");
+      }
+
+      // Process Ads
+      if (results[2].status === "fulfilled") {
+        const adsData = results[2].value.data.data;
+        if (Array.isArray(adsData)) {
+          setAds(adsData);
+        } else {
+          console.error("Unexpected response format for ads");
+          setAds([]);
+          errors.push("Ads");
+        }
+      } else {
+        console.error("Error fetching ads", results[2].reason);
+        errors.push("Ads");
+      }
+
+      // Process Events
+      if (results[3].status === "fulfilled") {
+        const eventsData = results[3].value.data.data;
+        if (Array.isArray(eventsData)) {
+          setEvents(eventsData);
+        } else {
+          console.error("Unexpected response format for events");
+          setEvents([]);
+          errors.push("Events");
+        }
+      } else {
+        console.error("Error fetching events", results[3].reason);
+        errors.push("Events");
+      }
+
+      if (errors.length) {
+        setError(`Error fetching: ${errors.join(", ")}`);
+      }
+      setLoading(false);
     };
     fetchData();
   }, [setUsers, setBrands, setAds, setEvents]);
@@ -99,6 +136,7 @@ export default function Home() {
 
   return (
     <div className="flex-col md:flex w-full">
+      {/* { error && <div className="bg-red-100 p-4 mb-4 text-red-700">{error}</div> } */}
       <div className="flex-1 space-y-4 p-8 pt-6">
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <Card>

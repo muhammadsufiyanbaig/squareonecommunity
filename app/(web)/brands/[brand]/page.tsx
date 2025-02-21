@@ -260,7 +260,7 @@ const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
                 className="bg-white dark:bg-zinc-900 border p-2 rounded-xl relative"
               >
                 <Link
-                  href={`/brands/${brand?.brandname}/${deal.dealid}`}
+                  href={`/brands/${brand?.brandname}/${encodeURIComponent(deal.title)}`}
                   className="absolute inset-0 z-20"
                 />
                 <div className="relative">
