@@ -79,7 +79,7 @@ export default function DealForm({ dealname }: DealFormProps) {
     if (dealname && tempBrand) {
       setFetching(true); // Set fetching to true
       const foundDeal = tempBrand?.deals.find(
-        (deal) => deal.dealid === dealname
+        (deal) => deal.title === dealname
       );
       if (foundDeal) {
         setType(foundDeal.type);
@@ -304,7 +304,7 @@ export default function DealForm({ dealname }: DealFormProps) {
           addDeal(tempBrand!.brandid, { ...data, dealid: data });
         }
 
-        router.push(`/brands/${decodeURIComponent(brandName)}/${deal?.dealid}`);
+        router.push(`/brands/${decodeURIComponent(brandName)}/${encodeURIComponent(data.title)}`);
         // Clear form fields and images
         setTitle("");
         setDescription("");

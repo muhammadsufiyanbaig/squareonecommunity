@@ -72,11 +72,11 @@ export let events: Events[] = [];
 export const findDeal = (
   array: Brand[],
   brandname: string,
-  dealID: string
+  dealTitle: string
 ) => {
   const brand = array.find((b) => b.brandname === brandname);
   if (!brand) return null;
-  const deal = brand.deals.find((d) => d.dealid === dealID);
+  const deal = brand.deals.find((d) => d.title === dealTitle);
   return deal;
 };
 
