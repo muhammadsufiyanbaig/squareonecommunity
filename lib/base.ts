@@ -52,6 +52,8 @@ interface BrandState {
   updateDeal: (brandId: string, updatedDeal: Deal) => void;
   addDeal: (brandId: string, newDeal: Deal) => void;
   getAllDeals: () => Deal[];
+  updateBrand: (brandId: string, updatedData: Partial<Brand>) => void;
+  addBrand: (newBrand: Brand) => void;
 }
 
 const useBrandStore = create<BrandState>()(
@@ -98,6 +100,14 @@ const useBrandStore = create<BrandState>()(
         getAllDeals: () => {
           return get().brands.flatMap((brand) => brand.deals);
         },
+        updateBrand: (brandId: string, updatedData: Partial<Brand>) =>
+          set((state) => ({
+            brands: state.brands.map((brand) =>
+              brand.brandid === brandId ? { ...brand, ...updatedData } : brand
+            ),
+          })),
+        addBrand: (newBrand: Brand) =>
+          set((state) => ({ brands: [...state.brands, newBrand] })),
       }),
       {
         name: "brand-storage",

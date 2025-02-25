@@ -12,6 +12,10 @@ const nextConfig: NextConfig = {
         protocol: 'https',
         hostname: 'wardrobee.vercel.app',        
       },
+      {
+        protocol: 'http',
+        hostname: 'example.com',        
+      },
     ],
   },
 };

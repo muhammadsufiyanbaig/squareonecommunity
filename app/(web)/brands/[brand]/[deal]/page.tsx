@@ -17,6 +17,7 @@ import { Pencil } from "lucide-react";
 import { useBrandStore } from "@/lib/base";
 import { usePathname, useRouter } from "next/navigation";
 import NotFound from "@/app/(web)/not-found";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
   const [dealId, setDealId] = useState<string>("");
@@ -149,6 +150,10 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
                 <strong>Valid until:</strong>
                 <p>{new Date(foundedDeal.endDate).toDateString()}</p>
               </div>
+              <div className="flex items-center gap-2">
+                <strong>Code:</strong>
+                <p>{foundedDeal.code}</p>
+              </div>
             </div>
           </div>
 
@@ -165,8 +170,8 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
                 <TableRow>
                   <TableHead>User Picture</TableHead>
                   <TableHead>User Name</TableHead>
-                  <TableHead>Brand What'sApp</TableHead>
-                  <TableHead>Deal Code</TableHead>
+                  <TableHead>What'sApp</TableHead>
+                  <TableHead>Redeem Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -174,17 +179,22 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
                   foundedDeal.redeem.map((user, i) => (
                     <TableRow key={i}>
                       <TableCell>
-                        <Image
-                          src={user.profileImage}
-                          alt={user.fullName}
-                          width={50}
-                          height={50}
-                          className="rounded-full aspect-square object-cover object-center"
-                        />
+                        <Avatar>
+                        <AvatarImage src={user.profileImage} />
+                          <AvatarFallback>
+                            {(() => {
+                              const parts = user.fullName.trim().split(" ");
+                              if (parts.length < 2) {
+                                return parts[0].charAt(0).toUpperCase();
+                              }
+                              return parts[0].charAt(0).toUpperCase() + parts[1].charAt(0).toUpperCase();
+                            })()}
+                          </AvatarFallback>
+                        </Avatar>
                       </TableCell>
                       <TableCell>{user.fullName}</TableCell>
                       <TableCell>{user.whatsAppNo}</TableCell>
-                      <TableCell>{user.redeem}</TableCell>
+                      <TableCell>{new Date(user.createdAt).toDateString()}</TableCell>
                     </TableRow>
                   ))
                 ) : (
@@ -198,7 +208,9 @@ const Page = ({ params }: { params: Promise<{ deal: string }> }) => {
             </Table>
           </div>
           <Link
-            href={`${foundedDeal.dealid}/editDeal?dealname=${encodeURIComponent(foundedDeal.dealid)}`}
+            href={`${foundedDeal.dealid}/editDeal?dealname=${encodeURIComponent(
+              foundedDeal.dealid
+            )}`}
             className="bg-red-500 p-4 rounded-full w-fit text-white hover:bg-red-700 transition-colors duration-150 cursor-pointer flex items-center justify-center fixed bottom-8 right-8"
           >
             <Pencil />

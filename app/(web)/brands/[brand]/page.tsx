@@ -220,7 +220,7 @@ const Page = ({ params }: { params: Promise<{ brand: string }> }) => {
       <div className="flex  flex-col gap-2 mt-6">
         <h2 className="text-2xl font-semibold">Working Hours</h2>
         <div>
-          {JSON.parse(brand.workinghours as any).map((hours: WorkingHours, index: number) => (
+          {brand.workingHours.map((hours: WorkingHours, index: number) => (
             <div className="max-w-md" key={index}>
               {!hours.closes ? (
                 <div key={index} className="grid grid-cols-2 mb-1">

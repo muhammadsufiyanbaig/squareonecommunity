@@ -35,6 +35,7 @@ export default function BrandForm({
   const [reqLoading, setReqLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const { id } = useAuthStore();
+  const { brands, updateBrand, addBrand } = useBrandStore(); // Updated destructuring
   const brandName = initialBrandName || null;
   const [brand, setBrands] = useState<Brand | null>(null);
   const [fetching, setFetching] = useState<boolean>(false);
@@ -52,8 +53,6 @@ export default function BrandForm({
     { day: "Sunday", start: "", end: "", closes: false },
   ]);
 
-  const { brands } = useBrandStore();
-
   const { toast } = useToast();
 
   const router = useRouter();
@@ -70,7 +69,7 @@ export default function BrandForm({
         setUploadedUrl(tempBrand.logoimage);
         setWhatsAppNumber(tempBrand.brandwhatsappno);
         setDescription(tempBrand.description);
-        setWorkingHours(tempBrand.workinghours || []);
+        setWorkingHours(tempBrand.workingHours || []);
         setCategory(tempBrand.category);
       }
       setFetching(false);
@@ -180,7 +179,7 @@ export default function BrandForm({
     formData.set("workingHours", JSON.stringify(workingHours));
 
     if (brand) {
-      formData.set("id", brand.brandid);
+      formData.set("brandid", brand.brandid);
     }
 
     try {
@@ -192,6 +191,31 @@ export default function BrandForm({
       }
 
       if (response.status === 200 || response.status === 201) {
+        if (brand) {
+          updateBrand(brand.brandid, {
+            brandname: brandNameField,
+            category,
+            logoimage: uploadedUrl || "",
+            brandwhatsappno: whatsAppNumber,
+            description,
+            workingHours,
+          });
+        } else {
+          console.log(response)
+          const newBrand = response.data.data || response.data;
+          addBrand({
+            brandid: newBrand.brandid,
+            brandname: brandNameField,
+            category,
+            logoimage: uploadedUrl || "",
+            createdby: id,
+            createdat: new Date().toISOString(),
+            brandwhatsappno: whatsAppNumber,
+            description,
+            workingHours,
+            deals: []
+          });
+        }
         toast({
           title: brand ? "Updated" : "Created",
           description: (
@@ -205,7 +229,7 @@ export default function BrandForm({
             </div>
           ),
         });
-        router.push("/brands");
+        router.push(`/brands/${brandNameField}`);
         // Clear form fields and images
         setBrandNameField("");
         setCategory("");
@@ -229,7 +253,7 @@ export default function BrandForm({
         description: (
           <div className="flex items-center">
             <CircleX className="h-4 w-4 text-red-500 mr-2" />
-            <span className="first-letter:capitalize">{error}</span>
+            <span className="first-letter:capitalize">{"An unexpected error occurred"}</span>
           </div>
         ),
       });

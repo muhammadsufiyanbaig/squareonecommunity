@@ -2,7 +2,6 @@ import axiosInstance from "@/app/axiosInstanse";
 import axios from "axios";
 
 export interface redeem {
-  redeem: string;
   fullName: string;
   whatsAppNo: string;
   profileImage: string;
@@ -20,6 +19,7 @@ export interface Deal {
   startDate: string;
   tagline: string;
   title: string;
+  code: string;
   redeem: redeem[] | null;
 }
 
@@ -39,7 +39,7 @@ export interface Brand {
   createdat: string;
   brandwhatsappno: string;
   description: string;
-  workinghours: WorkingHours[];
+  workingHours: WorkingHours[];
   deals: Deal[];
 }
 
